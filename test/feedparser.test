@@ -1,0 +1,90 @@
+#!/usr/bin/env tclsh
+
+source [file dirname [info script]]/helper.tcl
+
+package require feedparser
+
+incr cliutils::verbose
+
+test enc_mapping "unknown" -body {
+	feedparser::u::iana2tcl foobar
+} -result ""
+
+test enc_mapping "win" -body {
+	feedparser::u::iana2tcl windows-1251
+} -result cp1251
+
+
+test getEncoding "win" -body {
+	feedparser::u::getEncoding data/feeds/news.korr
+} -result cp1251
+
+test getEncoding "utf-8" -body {
+	feedparser::u::getEncoding data/feeds/comp.rob_pike
+} -result utf-8
+
+test getEncoding "unknown" -body {
+	feedparser::u::getEncoding data/feeds/empty.xml
+} -result utf-8 -match glob \
+	-errorOutput "*no encoding specified*"
+
+test getEncoding "unknown" -body {
+	feedparser::u::getEncoding data/feeds/broken.xml
+} -result utf-8 -match glob \
+	-errorOutput "*unknown encoding*"
+
+#
+# Idiotic emulation of a class
+
+test objNew 0 -setup {
+	set o [feedparser::objNew]
+} -cleanup {
+	$o objDelete
+} -body {
+	control::assert { "" == [$o entry 10 foobar] }
+	control::assert { 0 == [$o size] }
+	
+	$o entrySet 0 author "uncle bob"
+	$o entrySet 0 pubDate "2022"
+	control::assert { "uncle bob" == [$o entry 0 author] }
+	control::assert { "2022" == [$o entry 0 pubDate] }
+	control::assert { "" == [$o entry 0 foobar] }
+	control::assert { 1 == [$o size] }
+	
+	$o headlineSet title {Sam {&} Joe}
+	control::assert { "Sam {&} Joe" == [$o headline title] }
+
+	$o entries
+} -result {0 {author {uncle bob} pubDate 2022}}
+
+test objNew "invalid headline param" -setup {
+	set o [feedparser::objNew]
+} -cleanup {
+	$o objDelete
+} -body {
+	$o headlineSet foo "in bar"
+} -returnCodes error \
+	-result "invalid feed parameter 'foo': must be copyright, description, generator, link, managingEditor, title"
+
+test objNew "invalid entry param" -setup {
+	set o [feedparser::objNew]
+} -cleanup {
+	$o objDelete
+} -body {
+	$o entrySet 0 foo "in bar"
+} -returnCodes error \
+	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title"
+
+
+set enc [feedparser::u::getEncoding data/feeds/news.korr]
+set fd [open data/feeds/news.korr]
+fconfigure $fd -encoding $enc
+set xml [read $fd]
+
+set feed [feedparser::dom::parse $xml]
+puts [$feed headline title]
+puts [$feed headline copyright]
+puts [$feed headline link]
+puts [$feed headline managingEditor]
+puts [$feed headline generator]
+puts [$feed headline description]
