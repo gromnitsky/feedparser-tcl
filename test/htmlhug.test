@@ -1,0 +1,17 @@
+#!/usr/bin/env tclsh
+
+source [file dirname [info script]]/helper.tcl
+
+package require htmlhug
+
+test entities2chars "" -body {
+	return [htmlhug::entities2chars "foo &amp;&lt;&;bar&gt;"]
+} -result {foo &<&;bar>}
+
+test tagsRemove 0 -body {
+	return [htmlhug::tagsRemove "no <b> te<whoa />xt<b>"]
+} -result {no  text}
+
+test tagsRemoveUnsafe 0 -body {
+	return [htmlhug::tagsRemoveUnsafe "text <script>I'm evil</script> only"]
+} -result {text  only}
