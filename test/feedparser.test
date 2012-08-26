@@ -76,15 +76,28 @@ test objNew "invalid entry param" -setup {
 	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title"
 
 
-set enc [feedparser::u::getEncoding data/feeds/news.korr]
-set fd [open data/feeds/news.korr]
-fconfigure $fd -encoding $enc
-set xml [read $fd]
+test parse "rss/2.0 headline" -setup {
+	set f data/feeds/news.korr
+	set enc [feedparser::u::getEncoding $f]
+	set fd [open $f]
+	fconfigure $fd -encoding $enc
+	set xml [read $fd]
+} -cleanup {
+	close $fd
+} -body {
+	set feed [feedparser::dom::parse $xml]
+	$feed headlines
+} -result {copyright {Copyright 2012 korrespondent.net} description {Новости на korrespondent.net} generator {} link http://korrespondent.net managingEditor korrespondent@korrespondent.net title {Новости на korrespondent.net}}
 
-set feed [feedparser::dom::parse $xml]
-puts [$feed headline title]
-puts [$feed headline copyright]
-puts [$feed headline link]
-puts [$feed headline managingEditor]
-puts [$feed headline generator]
-puts [$feed headline description]
+test parse "atom headline" -setup {
+	set f data/feeds/comp.rob_pike
+	set enc [feedparser::u::getEncoding $f]
+	set fd [open $f]
+	fconfigure $fd -encoding $enc
+	set xml [read $fd]
+} -cleanup {
+	close $fd
+} -body {
+	set feed [feedparser::dom::parse $xml]
+	$feed headlines
+} -result {copyright {} description {} generator Blogger link http://commandcenter.blogspot.com/ managingEditor {noreply@blogger.com (rob)} title {command center}}

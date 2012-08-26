@@ -57,6 +57,14 @@ proc feedparser::headline { this param } {
 	}
 }
 
+# Return all headlines
+proc feedparser::headlines { this } {
+	# ::feedparser::NUMBER::d
+	set d [set ${this}::d]
+
+	dict get $d f
+}
+
 # Setter
 proc feedparser::headlineSet { this param val } {
 	variable validHeadline
@@ -246,9 +254,9 @@ proc feedparser::dom::parse { xml } {
 	}
 
 	set feed [feedparser::objNew]
-	if {$doc_node != "feed"} {
+	if {$node_name != "feed"} {
 		# looks like rss/rdf
-		set doc_node [$doc_node getElementsByTagName "channel"]
+		set doc_node [$doc_node getElementsByTagName channel]
 	}
 
 	foreach {key val} [parseHeadline $doc_node] {
@@ -259,17 +267,16 @@ proc feedparser::dom::parse { xml } {
 	return $feed
 }
 
-# If node contains a child node named child,
-# the variable child is set to the text of that node
-# in the caller's stack frame. If the node doesn't
-# exist, set the text to an emptry string in the
-# caller's stack frame.
+# If node contains a child node named child, the variable child is set
+# to the text of that node in the caller's stack frame. If the node
+# doesn't exist, set the text to an emptry string in the caller's stack
+# frame.
 #
 # param node: A tDOM node which is supposed to contain the child
 # param child: The name of the child
 # return: Nothing
 proc feedparser::dom::set_child_text {node child} {
-	if { ![$node hasChildNodes] } return
+	if { $node == "" || ![$node hasChildNodes] } return
 
 	set child_nodes ""
 	foreach i [$node selectNodes "*"] {
@@ -289,19 +296,14 @@ proc feedparser::dom::set_child_text {node child} {
 }
 
 proc feedparser::dom::parseHeadline { node } {
-	# TODO: fixme
-	array set r {
-		copyright {}
-		description {}
-		generator {}
-		link {}
-		managingEditor {}
-		title {}
-	}
+	variable ::feedparser::validHeadline
+
+	array set r {}
+	foreach i $validHeadline { set r($i) ""	}
 
 	foreach idx [array names r] {
 		feedparser::dom::set_child_text $node $idx
-		set r($idx) [set $idx]
+		if {[info exists $idx]} { set r($idx) [set $idx] }
 	}
 	
 	if {$r(managingEditor) != ""} {
