@@ -50,6 +50,7 @@ test objNew 0 -setup {
 	control::assert { "2022" == [$o entry 0 pubDate] }
 	control::assert { "" == [$o entry 0 foobar] }
 	control::assert { 1 == [$o size] }
+	control::assert { {author {uncle bob} pubDate 2022} == [$o entryWhole 0] }
 	
 	$o headlineSet title {Sam {&} Joe}
 	control::assert { "Sam {&} Joe" == [$o headline title] }
@@ -76,28 +77,30 @@ test objNew "invalid entry param" -setup {
 	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title"
 
 
-test parse "rss/2.0 headline" -setup {
+test parse "rss/2.0 headline" -body {
 	set f data/feeds/news.korr
-	set enc [feedparser::u::getEncoding $f]
-	set fd [open $f]
-	fconfigure $fd -encoding $enc
-	set xml [read $fd]
-} -cleanup {
-	close $fd
-} -body {
+	set xml [feedparser::u::readXML $f]
 	set feed [feedparser::dom::parse $xml]
 	$feed headlines
+} -cleanup {
+	$feed objDelete
 } -result {copyright {Copyright 2012 korrespondent.net} description {Новости на korrespondent.net} generator {} link http://korrespondent.net managingEditor korrespondent@korrespondent.net title {Новости на korrespondent.net}}
 
-test parse "atom headline" -setup {
+test parse "atom headline" -body {
 	set f data/feeds/comp.rob_pike
-	set enc [feedparser::u::getEncoding $f]
-	set fd [open $f]
-	fconfigure $fd -encoding $enc
-	set xml [read $fd]
-} -cleanup {
-	close $fd
-} -body {
+	set xml [feedparser::u::readXML $f]
 	set feed [feedparser::dom::parse $xml]
 	$feed headlines
+} -cleanup {
+	$feed objDelete
 } -result {copyright {} description {} generator Blogger link http://commandcenter.blogspot.com/ managingEditor {noreply@blogger.com (rob)} title {command center}}
+
+
+test parse "rss/2.0 entries" -body {
+	set f data/feeds/news.korr
+	set xml [feedparser::u::readXML $f]
+	set feed [feedparser::dom::parse $xml]
+	$feed size
+} -cleanup {
+	$feed objDelete
+} -result {20}

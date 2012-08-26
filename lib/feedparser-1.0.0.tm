@@ -3,6 +3,7 @@
 package require tdom
 
 package require cliutils
+package require htmlhug
 
 # set feed [feedparser::parse $xml]
 # puts [$feed feed title]
@@ -27,7 +28,7 @@ proc feedparser::objNew {} {
 		variable d [dict create]
 		dict set d f [dict create]
 		foreach i $feedparser::validHeadline { dict set d f $i {} }
-		dict set d e []
+		dict set d e [dict create]
 	}
 
 	interp alias {} ${self}::$objCount {} ${self}::dispatch $objCount
@@ -83,7 +84,7 @@ proc feedparser::headlineSet { this param val } {
 proc feedparser::size {this} {
 	# ::feedparser::NUMBER::d
 	set d [set ${this}::d]
-	
+
 	dict size [dict get $d e]
 }
 
@@ -94,6 +95,18 @@ proc feedparser::entry {this n param} {
 
 	if {[dict exists $d e $n $param]} {
 		dict get $d e $n $param
+	} else {
+		return ""
+	}
+}
+
+# Getter
+proc feedparser::entryWhole {this n} {
+	# ::feedparser::NUMBER::d
+	set d [set ${this}::d]
+
+	if {[dict exists $d e $n]} {
+		dict get $d e $n
 	} else {
 		return ""
 	}
@@ -113,6 +126,13 @@ proc feedparser::entrySet {this n param val} {
 	}
 
 	dict set ${this}::d e $n $param $val
+}
+
+# Setter
+proc feedparser::entryWholeSet {this n vals} {
+	foreach {key val} $vals {
+		entrySet $this $n $key $val
+	}
 }
 
 # Return all entries
@@ -237,6 +257,16 @@ proc feedparser::u::getEncoding { filename } {
 	return $enc
 }
 
+# Return a xml string
+proc feedparser::u::readXML { filename } {
+	set enc [feedparser::u::getEncoding $filename]
+	set fd [open $filename]
+	fconfigure $fd -encoding $enc
+	set xml [read $fd]
+	close $fd
+
+	return $xml
+}
 
 namespace eval feedparser::dom {}
 
@@ -259,8 +289,16 @@ proc feedparser::dom::parse { xml } {
 		set doc_node [$doc_node getElementsByTagName channel]
 	}
 
+	# get headline
 	foreach {key val} [parseHeadline $doc_node] {
 		$feed headlineSet $key $val
+	}
+
+	# get entries
+	set enum 0
+	foreach idx [parseEntries $doc_node] {
+		$feed entryWholeSet $enum $idx
+		incr enum
 	}
 	
 	$doc delete
@@ -299,7 +337,7 @@ proc feedparser::dom::parseHeadline { node } {
 	variable ::feedparser::validHeadline
 
 	array set r {}
-	foreach i $validHeadline { set r($i) ""	}
+	foreach idx $validHeadline { set r($idx) ""	}
 
 	foreach idx [array names r] {
 		feedparser::dom::set_child_text $node $idx
@@ -346,5 +384,168 @@ proc feedparser::dom::parseHeadline { node } {
 	}
 	
 
+	return [array get r]
+}
+
+# Return:
+# big system-dependent integer value -- okay
+# -1 -- error
+proc feedparser::dom::parseDate { date } {
+	# In the past we were removing timezone, so any date was right only
+	# if it was in GMT. Now with the power of Tcl 8.5 clock command we
+	# can construct a proper parameter for -format option.
+
+	if {[regexp -- {^[A-Z][a-z]{2}, \d} $date]} {
+		# suppose the date is in rfc822 format
+		# (for example, Sun, 04 Nov 2007 18:08:00 +0200)
+		set f "%a, %e %b %Y %T"
+		if {[regexp -- {^[A-Z][a-z]{2}, \d+ \S+ \d+ \d\d:\d\d[^:]} $date]} {
+			# some feed (de)generators don't want to include seconds
+			# in the date
+			set f "%a, %e %b %Y %H:%M"
+		}
+		lappend f "$f %z"
+	} else {
+		# suppose the date is in ISO8601 format,
+		# see http://en.wikipedia.org/wiki/ISO8601
+		set f "%Y-%m-%dT%T"
+		if {[regexp -- {^\d+-\d+-\d+T\d+:\d+:\d+(\.\d+)} $date match ms]} {
+			# blogger.com form
+			set f "%Y-%m-%dT%T${ms}"
+		}
+		lappend f "${f}%z"
+	}
+
+	foreach i $f {
+		if {![catch {clock scan $date -format $i -timezone :UTC} result]} {
+			return $result
+		}
+	}
+
+	# a final try
+	if {$date != "" && ![catch {clock scan $date -timezone :UTC} result]} {
+		return $result
+	}
+		
+	return -1
+}
+
+proc feedparser::dom::parseEntries { node } {
+	set r []
+	set entries [$node selectNodes {//*[local-name()='item' or local-name()='entry']}]
+
+	foreach idx $entries {
+		lappend r [parseEntry $idx]
+	}
+	
+	return $r
+}
+
+proc feedparser::dom::parseEntry { node } {
+	variable ::feedparser::validEntry
+
+	array set r {}
+	foreach idx $validEntry { set $idx "" }
+	
+	feedparser::dom::set_child_text $node title
+	feedparser::dom::set_child_text $node link
+	feedparser::dom::set_child_text $node guid
+	feedparser::dom::set_child_text $node description
+	feedparser::dom::set_child_text $node comments
+	feedparser::dom::set_child_text $node author
+	feedparser::dom::set_child_text $node pubDate
+
+	# a small hack with date
+	if {$pubDate == ""} {
+		foreach idx {dc:date updated published} {
+			feedparser::dom::set_child_text $node $idx
+			if {[set pubDate [set $idx]] != ""} break
+		}
+	}
+	if {[set pubDate [parseDate $pubDate]] == -1} { set pubDate "" }
+
+	set maybe_atom_p 0
+
+	# try to handle atom link
+	if {$link == ""} {
+		set link_attr [$node selectNodes {*[local-name()='link' and @rel = 'alternate']/@href}]
+		if { [llength $link_attr] >= 1 } {
+			set link [lindex [lindex $link_attr 0] 1]
+			set maybe_atom_p 1
+		}
+	}
+
+	# rdf/1.0
+	set encoded_nodes [$node selectNodes {*[local-name()='encoded' and namespace-uri()='http://purl.org/rss/1.0/modules/content/']}]
+	if { [llength $encoded_nodes] == 1 } {
+		set encoded_node [lindex $encoded_nodes 0]
+		set content_encoded [$encoded_node text]
+	}
+
+	if {$link == "" && $guid != ""} { set link $guid }
+	
+	# Try to handle Atom guid
+	if { $guid == "" && $maybe_atom_p } {
+		feedparser::dom::set_child_text $node id
+		if {$id != ""} {
+			# We don't really know if it's an URL
+			set guid $id
+		}
+	}
+
+	if { $maybe_atom_p } {
+		# for atom, description is summary, content is content_encoded;
+		# we will use the bigger one as the description
+		feedparser::dom::set_child_text $node summary
+		if {$summary != ""} { set description $summary }
+		
+		feedparser::dom::set_child_text $node content
+		if {$content != "" && \
+				([string length $content] > [string length $description]) } {
+			set description $content
+		}
+		
+		# person constructs
+		set author_node [$node selectNodes {*[local-name()='author']}]
+
+		if { [llength $author_node] == 1 } {
+			set author_node [lindex $author_node 0]
+			feedparser::dom::set_child_text $author_node name
+			feedparser::dom::set_child_text $author_node email
+			if {[regexp -- {\w+} $name]} {
+				set author [string trim $name]
+			}
+			if {[regexp -- {\S+@\S+\.\S+} $email match]} {
+				set author_email $match
+			}
+		}
+	} else {
+		if {$author != ""} {
+			# check if author is a email address
+			if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $author match email name]} {
+				set author_email $email
+				set author [string trim $name { \t)(}]
+			} else {
+				set author [string trim $author]
+			}
+		}
+
+		# Many Ukrainian news agents add to items of their rss/2.0 feeds
+		# a non-standard 'fulltext' element that contains a text that is
+		# bigger than a text in 'description' element. I don't know why
+		# the fuck is that & who is to blame.
+		feedparser::dom::set_child_text $node fulltext
+		if {[string length $fulltext] > [string length $description]} {
+			set description $fulltext
+		}
+	}
+
+	# remove unsafe html
+	set description [htmlhug::tagsRemoveUnsafe $description]
+
+	foreach idx $::feedparser::validEntry {
+		set r($idx) [set $idx]
+	}
+	
 	return [array get r]
 }
