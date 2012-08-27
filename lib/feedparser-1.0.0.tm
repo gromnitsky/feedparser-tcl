@@ -270,6 +270,12 @@ proc feedparser::u::readXML { filename } {
 	return $xml
 }
 
+# Return a feedparser::NUMBER object
+proc feedparser::u::parse { filename } {
+	set xml [feedparser::u::readXML $filename]
+	return [feedparser::dom::parse $xml]
+}
+
 namespace eval feedparser::dom {}
 
 proc feedparser::dom::parse { xml } {

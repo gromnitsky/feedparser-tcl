@@ -6,6 +6,9 @@ package require feedparser
 
 incr cliutils::verbose
 
+#
+# Encoding tests
+
 test enc_mapping "unknown" -body {
 	feedparser::u::iana2tcl foobar
 } -result ""
@@ -76,14 +79,11 @@ test objNew "invalid entry param" -setup {
 } -returnCodes error \
 	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title"
 
-proc parse_feed { filename } {
-	set xml [feedparser::u::readXML $filename]
-	set feed [feedparser::dom::parse $xml]
-	return $feed
-}
+#
+# Feeds parsing
 
-set korr [parse_feed data/feeds/news.korr]
-set pike [parse_feed data/feeds/comp.rob_pike]
+set korr [feedparser::u::parse data/feeds/news.korr]
+set pike [feedparser::u::parse data/feeds/comp.rob_pike]
 
 test parse "rss/2.0 headline" -body {
 	$korr headlines
