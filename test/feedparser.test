@@ -76,31 +76,54 @@ test objNew "invalid entry param" -setup {
 } -returnCodes error \
 	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title"
 
+proc parse_feed { filename } {
+	set xml [feedparser::u::readXML $filename]
+	set feed [feedparser::dom::parse $xml]
+	return $feed
+}
+
+set korr [parse_feed data/feeds/news.korr]
+set pike [parse_feed data/feeds/comp.rob_pike]
 
 test parse "rss/2.0 headline" -body {
-	set f data/feeds/news.korr
-	set xml [feedparser::u::readXML $f]
-	set feed [feedparser::dom::parse $xml]
-	$feed headlines
-} -cleanup {
-	$feed objDelete
+	$korr headlines
 } -result {copyright {Copyright 2012 korrespondent.net} description {Новости на korrespondent.net} generator {} link http://korrespondent.net managingEditor korrespondent@korrespondent.net title {Новости на korrespondent.net}}
 
 test parse "atom headline" -body {
-	set f data/feeds/comp.rob_pike
-	set xml [feedparser::u::readXML $f]
-	set feed [feedparser::dom::parse $xml]
-	$feed headlines
-} -cleanup {
-	$feed objDelete
+	$pike headlines
 } -result {copyright {} description {} generator Blogger link http://commandcenter.blogspot.com/ managingEditor {noreply@blogger.com (rob)} title {command center}}
 
 
 test parse "rss/2.0 entries" -body {
-	set f data/feeds/news.korr
-	set xml [feedparser::u::readXML $f]
-	set feed [feedparser::dom::parse $xml]
-	$feed size
-} -cleanup {
-	$feed objDelete
+	$korr size
 } -result {20}
+
+test parse "atom entries" -body {
+	$pike size
+} -result {12}
+
+test parse "rss/2.0 entry 5" -body {
+	array set e [$korr entryWhole 5]
+	control::assert { $e(title) eq "Число погибших в Нью-Йорке достигло двух человек" }
+	control::assert { $e(guid) == 1387250 }
+	control::assert { [regexp -- "Русская служба Би-би-си" $e(description)] }
+	control::assert { [regexp -- "korrespondent.net/world/1387250" $e(link)] }
+	control::assert { [regexp -- "#comment_header_layer" $e(comments)] }
+	control::assert { $e(author_email) == "" }
+	control::assert { $e(author) == "32057" }
+	
+	return $e(pubDate)
+} -result {1345836360}
+
+test parse "atom entry 1" -body {
+	array set e [$pike entryWhole 1]
+	control::assert { $e(title) eq "The byte order fallacy" }
+	control::assert { $e(guid) eq "tag:blogger.com,1999:blog-6983287.post-204147499802585288" }
+	control::assert { [regexp -- "Just last week I was reviewing" $e(description)] }
+	control::assert { $e(link) eq "http://commandcenter.blogspot.com/2012/04/byte-order-fallacy.html" }
+	control::assert { $e(comments) == "" }
+	control::assert { $e(author_email) eq "noreply@blogger.com" }
+	control::assert { $e(author) eq "rob" }
+	
+	return $e(pubDate)
+} -result {1333601367}
