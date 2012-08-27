@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" media="screen" href="/~d/styles/rss2full.xsl"?><?xml-stylesheet type="text/css" media="screen" href="http://feeds.feedburner.com/~d/styles/itemcontent.css"?><rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:feedburner="http://rssnamespace.org/feedburner/ext/1.0" version="2.0">
+  <channel>
+	<title>Virtuous Code</title>
+	
+	<link>http://devblog.avdi.org</link>
+	<description>"The three virtues of a programmer: laziness, impatience, and hubris" -- Larry Wall</description>
+	<lastBuildDate>Mon, 27 Aug 2012 17:01:47 +0000</lastBuildDate>
+	<language>en-US</language>
+	<sy:updatePeriod>hourly</sy:updatePeriod>
+	<sy:updateFrequency>1</sy:updateFrequency>
+	<generator>http://wordpress.org/?v=</generator>
+		<atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="self" type="application/rss+xml" href="http://feeds.feedburner.com/VirtuousCode" /><feedburner:info uri="virtuouscode" /><atom10:link xmlns:atom10="http://www.w3.org/2005/Atom" rel="hub" href="http://pubsubhubbub.appspot.com/" /><feedburner:emailServiceId>VirtuousCode</feedburner:emailServiceId><feedburner:feedburnerHostname>http://feedburner.google.com</feedburner:feedburnerHostname><item>
+		<title>Array Set Operations in Ruby</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/Q2Mz00OMv_M/</link>
+		<comments>http://devblog.avdi.org/2012/08/27/array-set-operations-in-ruby/#comments</comments>
+		<pubDate>Mon, 27 Aug 2012 04:00:00 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Ruby]]></category>
+		<category><![CDATA[arrays]]></category>
+		<category><![CDATA[collections]]></category>
+		<category><![CDATA[ruby]]></category>
+		<category><![CDATA[sets]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2613</guid>
+		<description>Sometimes you want to treat an Array like a set. &lt;a href="http://devblog.avdi.org/2012/08/27/array-set-operations-in-ruby/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000005"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000005"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>Do you ever find yourself doing this? </p>
+<pre class="src src-ruby">tags = %w[foo bar baz]
+tags << <span class="org-string">'buz'</span> <span class="org-keyword">unless</span> tags.include?(<span class="org-string">'buz'</span>)
+</pre>
+<p> Or: </p>
+<pre class="src src-ruby">tags << <span class="org-string">'baz'</span>
+tags.uniq!
+</pre>
+<p> In both cases, we have an <code>Array</code> we want to use as a set, containing only unique elements. </p>
+<p> One way to tackle this more cleanly is to simply use a <code>Set</code>. </p>
+<pre class="src src-ruby">require <span class="org-string">'set'</span>
+tags = <span class="org-type">Set</span>.new(%w[foo bar baz])
+tags.add(<span class="org-string">'foo'</span>)
+tags.add(<span class="org-string">'buz'</span>)
+tags <span class="org-comment-delimiter"># </span><span class="org-comment">=> #<Set: {"foo", "bar", "baz", "buz"}></span>
+</pre>
+<p> But the <code>Set</code> and <code>Array</code> interfaces differ in some regards, and if other code is already expecting the collection to be an <code>Array</code>, that solution may not be practical. </p>
+<p> As it happens, <code>Array</code> supports several basic set operations innately. You may already know about these, but in case you don’t, here are some examples. </p>
+<p> Set union: </p>
+<pre class="src src-ruby">tags = %w[foo bar]
+tags |= %w[foo buz] <span class="org-comment-delimiter"># </span><span class="org-comment">=> ["foo", "bar", "buz"]</span>
+</pre>
+<p> Set difference: </p>
+<pre class="src src-ruby">tags = %w[foo bar]
+tags - %w[bar baz] <span class="org-comment-delimiter"># </span><span class="org-comment">=> ["foo"]</span>
+</pre>
+<p> Set intersection: </p>
+<pre class="src src-ruby">tags = %w[foo bar]
+tags & %w[bar baz] <span class="org-comment-delimiter"># </span><span class="org-comment">=> ["bar"]</span>
+</pre>
+<p> It’s a small thing, but perhaps it will save you a few lines of code. </p>
+<p> UPDATE: My WordPress “related posts” feature points out that I have officially begun to repeat myself. Ah well. If nothing else this article has a bit more explanation than the one from 2010. </p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000005"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000005"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=Q2Mz00OMv_M:a6N_4O7yiIU:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=Q2Mz00OMv_M:a6N_4O7yiIU:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=Q2Mz00OMv_M:a6N_4O7yiIU:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=Q2Mz00OMv_M:a6N_4O7yiIU:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=Q2Mz00OMv_M:a6N_4O7yiIU:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=Q2Mz00OMv_M:a6N_4O7yiIU:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=Q2Mz00OMv_M:a6N_4O7yiIU:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/Q2Mz00OMv_M" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/08/27/array-set-operations-in-ruby/feed/</wfw:commentRss>
+		<slash:comments>8</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/08/27/array-set-operations-in-ruby/</feedburner:origLink></item>
+		<item>
+		<title>Why WordPress</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/CLa9fKWeUjY/</link>
+		<comments>http://devblog.avdi.org/2012/08/09/why-wordpress/#comments</comments>
+		<pubDate>Thu, 09 Aug 2012 16:39:51 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Questions]]></category>
+		<category><![CDATA[blogging]]></category>
+		<category><![CDATA[tools]]></category>
+		<category><![CDATA[wordpress]]></category>
+		<category><![CDATA[writing]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2608</guid>
+		<description>This was originally a reply to an email, but I thought since I get this question from time to time I’d publish it here as well. Why use WordPress to blog, when there are much more “hacker-friendly” blogging tools out … &lt;a href="http://devblog.avdi.org/2012/08/09/why-wordpress/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000006"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000006"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>This was originally a reply to an email, but I thought since I get this question from time to time I’d publish it here as well.</p>
+<p><em>Why use WordPress to blog, when there are much more “hacker-friendly” blogging tools out there, such as <a href="http://octopress.org/">Octopress</a>?</em></p>
+<p>I use WordPress, in large part, because I <em>don’t</em> know PHP. Before I started doing technical blogging in ~2006-2007, I spent literally <em>years</em> hamstrung by my need to come up with “the perfect” blogging platform. I’d come up with some topic I wanted to blog about, then that would lead to thinking about that blog system I wanted to write, and I’d wind up writing nothing.</p>
+<p>The fact that WordPress:</p>
+<ul>
+<li>is a dead-simple one-click install on Dreamhost</li>
+<li>is written in a language that I find <a href="http://me.veekun.com/blog/2012/04/09/php-a-fractal-of-bad-design/">fairly unpleasant</a>; and</li>
+<li>has all the bells and whistles that I might otherwise be tempted to code myself already covered by plugins</li>
+</ul>
+<p>…means that I spend my time writing posts, instead of working on my publishing system.</p>
+<p>And, of course, Octopress didn’t exist when I started blogging. There were similar tools back then. But the Octopress-equivalents of 2007 are starting to look rather long in the tooth now, which means if I’d gone with one of them, right about now I’d be agonizing over my desire to migrate to newer system and all the data migration headaches which would accompany that. Meanwhile, WordPress has happily migrated my data forward through one major and many minor version updates without any hiccups. And there are lots of options for exporting all that data (comments and all!) should I ever decide to migrate off of it.</p>
+<p>I firmly believe that it’s part of the hacker ethos to build and/or fiddle with all of your tools, and sometimes I feel bad for choosing <em>not</em> to fiddle with my blogging software. But I also believe you’ve got to pick your battles, and for me, the perpetual yak-shave of building a better blogger was stifling my writing. YMMV.</p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000006"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000006"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=CLa9fKWeUjY:HMWFmyBp-bA:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=CLa9fKWeUjY:HMWFmyBp-bA:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=CLa9fKWeUjY:HMWFmyBp-bA:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=CLa9fKWeUjY:HMWFmyBp-bA:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=CLa9fKWeUjY:HMWFmyBp-bA:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=CLa9fKWeUjY:HMWFmyBp-bA:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=CLa9fKWeUjY:HMWFmyBp-bA:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/CLa9fKWeUjY" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/08/09/why-wordpress/feed/</wfw:commentRss>
+		<slash:comments>3</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/08/09/why-wordpress/</feedburner:origLink></item>
+		<item>
+		<title>Define Conversion Protocols in Ruby</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/qXShxBn9hYw/</link>
+		<comments>http://devblog.avdi.org/2012/07/24/define-conversion-protocols-in-ruby/#comments</comments>
+		<pubDate>Tue, 24 Jul 2012 19:12:39 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Ruby]]></category>
+		<category><![CDATA[confident-ruby]]></category>
+		<category><![CDATA[idioms]]></category>
+		<category><![CDATA[ruby]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2579</guid>
+		<description>In this excerpt from "Confident Ruby", I talk about mimicking Ruby's own "implicit conversion protocols" in your own code. &lt;a href="http://devblog.avdi.org/2012/07/24/define-conversion-protocols-in-ruby/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000007"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000007"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<div class="boilerplate preamble">
+<em>This article is an excerpt from my in-progress book, "<a href="http://confidentruby.com">Confident Ruby</a>".</em>
+</div>
+<div id="outline-container-1-1" class="outline-3">
+<h3 id="sec-1-1">The problem</h3>
+<div id="text-1-1" class="outline-text-3">
+<p>You need to ensure inputs are of a core type with context-specific extra semantics.</p>
+</div>
+</div>
+<div id="outline-container-1-2" class="outline-3">
+<h3 id="sec-1-2">The approach</h3>
+<div id="text-1-2" class="outline-text-3">
+<p>Define new implicit conversion protocols mimicking Ruby’s native protocols such as <code>#to_path</code>.</p>
+</div>
+</div>
+<div id="outline-container-1-3" class="outline-3">
+<h3 id="sec-1-3">Explanation</h3>
+<div id="text-1-3" class="outline-text-3">
+<p>Ruby defines a number of protocols for converting objects into core types such as <code>String</code>, <code>Array</code>, and <code>Integer</code>. But there may come a time when the core protocols don’t capture the conversion semantics your apps or libraries need.</p>
+<p>Consider a 2D drawing library. Points on the canvas are identified by X/Y pairs. For simplicity, these pairs are simply two-element arrays of integers.</p>
+<p>Ruby defines <code>#to_a</code> and <code>#to_ary</code> for converting to =Array=s. But that doesn’t really capture intent of converting to an X/Y pair. Just like the <code>#to_path</code> conversion used by <code>File.open</code>, even though we are converting to a core type we’d like to add a little more meaning to the conversion call. We’d also like to make it possible for an object to have a coordinate conversion even if otherwise it doesn’t really make sense for it to have a general <code>Array</code> conversion.</p>
+<p>In order to capture this input requirement, we define the <code>#to_coords</code> conversion protocol. Here’s a method which uses the protocol:</p>
+<pre class="src src-ruby"><span class="org-comment-delimiter"># </span><span class="org-comment">origin and ending should both be [x,y] pairs, or should</span>
+<span class="org-comment-delimiter"># </span><span class="org-comment">define #to_coords to convert to an [x,y] pair</span>
+<span class="org-keyword">def</span> <span class="org-function-name">draw_line</span>(start, endpoint)
+  start = start.to_coords <span class="org-keyword">if</span> start.respond_to?(<span class="org-constant">:to_coords</span>)
+  start = start.to_ary
+  <span class="org-comment-delimiter"># </span><span class="org-comment">...</span>
+<span class="org-keyword">end</span></pre>
+<p>Later, we decide to encapsulate coordinate points in their own <code>Point</code> class, enabling us to attach extra information like the <code>name</code> of the point. We define a <code>#to_coords</code> method on this class:</p>
+<pre class="src src-ruby"><span class="org-keyword">class</span> <span class="org-type">Point</span>
+  attr_reader <span class="org-constant">:x</span>, <span class="org-constant">:y</span>, <span class="org-constant">:name</span>
+
+  <span class="org-keyword">def</span> <span class="org-function-name">initialize</span>(x, y, name=<span class="org-variable-name">nil</span>)
+    <span class="org-variable-name">@x</span>, <span class="org-variable-name">@y</span>, <span class="org-variable-name">@name</span> = x, y, name
+  <span class="org-keyword">end</span>
+
+  <span class="org-keyword">def</span> <span class="org-function-name">to_coords</span>
+    [x,y]
+  <span class="org-keyword">end</span>
+<span class="org-keyword">end</span></pre>
+<p>We can now use either raw X/Y pairs or <code>Point</code> objects interchangeably:</p>
+<pre class="src src-ruby">start    = <span class="org-type">Point</span>.new(23, 37)
+endpoint = [45,89]
+
+draw_line(start, endpoint)</pre>
+<p>But the <code>#to_coords</code> protocol isn’t limited to classes defined in our own library. Client code which defines classes with coordinates can also define <code>#to_coords</code> conversions. By documenting the protocol, we open up our methods to interoperate with client objects which we had no inkling of at the time of writing.</p>
+</div>
+<div class="boilerplate">
+<em>If you enjoyed this excerpt from <a href="http://confidentruby.com">Confident Ruby</a>, why not get the whole book? Early access is <a href="http://confidentruby.com">available now</a>!</em>
+</div>
+</div>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000007"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000007"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=qXShxBn9hYw:GWtP3KnOngE:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=qXShxBn9hYw:GWtP3KnOngE:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=qXShxBn9hYw:GWtP3KnOngE:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=qXShxBn9hYw:GWtP3KnOngE:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=qXShxBn9hYw:GWtP3KnOngE:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=qXShxBn9hYw:GWtP3KnOngE:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=qXShxBn9hYw:GWtP3KnOngE:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/qXShxBn9hYw" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/07/24/define-conversion-protocols-in-ruby/feed/</wfw:commentRss>
+		<slash:comments>5</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/07/24/define-conversion-protocols-in-ruby/</feedburner:origLink></item>
+		<item>
+		<title>Letter to Steven Aldrich of Outright, re: GoDaddy Acquisition</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/RYFlqQ8gDT8/</link>
+		<comments>http://devblog.avdi.org/2012/07/19/letter-to-steven-spaldrich-of-outright-re-godaddy-acquisition/#comments</comments>
+		<pubDate>Thu, 19 Jul 2012 16:50:28 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Business]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2573</guid>
+		<description>This the text of an email I sent to the CEO of Outright, a financial tracking service I’ve been using for a few months, on learning they’d been acquired by GoDaddy. Not strictly coding related; but I thought since it … &lt;a href="http://devblog.avdi.org/2012/07/19/letter-to-steven-spaldrich-of-outright-re-godaddy-acquisition/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000008"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000008"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p><em>This the text of an email I sent to the CEO of Outright, a financial tracking service I’ve been using for a few months, on learning they’d been acquired by GoDaddy. Not strictly coding related; but I thought since it concerns a Rails-using startup, and since some of you have shown interest in the business side of what I do, I’d share it here. I’ll try to make up for this with a nice juicy coding post ASAP :-)</em></p>
+<p>UPDATE: I’ve added a reply from Steven below.</p>
+<p>Steve,</p>
+<p>This is really upsetting news. I recently completed an evaluation of several small-business financial tracking services. After Outright worked with me to to resolve some of my initial issues, I chose outright and set up a paid account. I love the easy-to-use Outright UI, the great integrations with other services like Freshbooks, and the fact that it not only imports from Paypal, but can actually track Paypal fees associated with each purchase.</p>
+<p>GoDaddy is a company associated with:</p>
+<div>
+<ul>
+<li><strong>Moral cowardice</strong> for kowtowing to the entertainment lobby against their own users, then poo-pooing the outcry and only flip-flopping when it became clear they were losing real money</li>
+<li><strong>Poor customer service</strong> according to everyone I’ve heard from who has dealt with them.</li>
+<li><strong>Overall scamminess</strong> in basing their business model on a myriad upsells</li>
+<li><strong>Misogyny in advertising.</strong> I’m not against sex in advertising, but GoDaddy takes it to an extreme of objectification with ads which say nothing about the actual service and simply try to distract potential buyers with a pair of boobs.</li>
+</ul>
+<p>You can tell me that GoDaddy is changing, but public face is not the same as corporate culture, and corporate culture rarely makes radical shifts. Perhaps in a few years I’ll be ready to accept a new, improved GoDaddy; but as of right now I have no reason to believe that any changes I see are more than superficial responses to some public embarrassments.</p>
+<p>As a small business owner:</p>
+<div>
+<ul>
+<li>I don’t want my money going to a company like GoDaddy;</li>
+<li>I don’t want to entrust my financial data to a company like GoDaddy; and</li>
+<li>I don’t want to be associated in any way with a company like GoDadddy</li>
+</ul>
+<p>But there’s another, and perhaps larger concern. As a software developer heavily exposed to startup culture, an acquisition like this rings an alarm bell in my head. Forgive me, but what it suggests is this: <strong>the founders are done with Outright; they are cashing out and moving on</strong>. I’m not saying all acquisitions are bad; but when it’s a company like GoDaddy doing the acquiring, that says “cash-out” to me. And I don’t want to commit to [yet another]  service that slowly dies on the corporate vine as its new owners try to figure out how to milk it for profits.</p>
+</div>
+<p>I’ll be giving some thought to what this means for me, but it almost certainly means I’ll be cancelling my paid Outright account and looking for a service to replace it. I”ll also be sharing this letter with my followers on Twitter, etc., since I’ve shared my search for a financial tracking service (and my happiness with @outright!) with them up til now, and many of them have shown interest in my findings.</p>
+</div>
+<p>Regards,</p>
+<p>–<br />
+Avdi Grimm</p>
+<p>UPDATE: Here’s the reply from Steven Aldrich:</p>
+<blockquote>
+<div><span style="font-family: arial, helvetica, sans-serif;">Here are my thoughts:</span></div>
+<div></div>
+<div>
+<p><span style="font-family: arial, helvetica, sans-serif;">Outright is still the same product run by the same team.  We’re going to grow the resources focused on making Outright even better and working with Go Daddy will allow us to help many, many more small businesses.</span></p>
+<p><span style="font-family: arial, helvetica, sans-serif;">We have learned in our discussions with Go Daddy that they are going through some big changes. The company has new investors, changed leadership, and is repositioning the brand.  </span>The company is about to launch a new advertising campaign that bridges the past image to the future vision (a piece in the <a href="http://mediadecoder.blogs.nytimes.com/2012/07/15/godaddy-the-web-hosting-provider-seeks-to-upgrade-its-image/" target="_blank">NY Times</a> and a piece in <a href="http://www.businessweek.com/articles/2012-05-24/the-challenge-of-classing-up-go-daddy" target="_blank">Business Week</a> on the beginning of the branding changes).</p>
+<p>When the new CEO took over in December, the first thing he did was acknowledge their mistake on SOPA and <a href="http://www.godaddy.com/newscenter/release-view.aspx?news_item_id=378" target="_blank">wound up opposing it</a>.</p>
+<p><span style="font-family: arial, helvetica, sans-serif;">Thousands of employees go to work there everyday with a focus on creating a great customer experience … I’ve talked with both the employees and customers to know that they do a good job much of the time.  I’m joining the management team to help them get better from here.</span></p>
+<p><span style="font-family: arial, helvetica, sans-serif;">I hope you would reconsider and stay on as a customer and I’d be happy to talk with you live.</span></p>
+</div>
+<div><span style="font-family: arial, helvetica, sans-serif;">Thanks,</span></div>
+<div><span style="font-family: arial, helvetica, sans-serif;">Steven</span></div>
+</blockquote>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000008"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000008"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=RYFlqQ8gDT8:w5OPSMKBU4M:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=RYFlqQ8gDT8:w5OPSMKBU4M:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=RYFlqQ8gDT8:w5OPSMKBU4M:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=RYFlqQ8gDT8:w5OPSMKBU4M:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=RYFlqQ8gDT8:w5OPSMKBU4M:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=RYFlqQ8gDT8:w5OPSMKBU4M:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=RYFlqQ8gDT8:w5OPSMKBU4M:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/RYFlqQ8gDT8" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/07/19/letter-to-steven-spaldrich-of-outright-re-godaddy-acquisition/feed/</wfw:commentRss>
+		<slash:comments>13</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/07/19/letter-to-steven-spaldrich-of-outright-re-godaddy-acquisition/</feedburner:origLink></item>
+		<item>
+		<title>Stepping off the ledge</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/vBHWDs6RXyE/</link>
+		<comments>http://devblog.avdi.org/2012/07/09/stepping-off-the-ledge/#comments</comments>
+		<pubDate>Mon, 09 Jul 2012 13:00:26 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Announcements]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2535</guid>
+		<description>A few weeks ago my “primary” contract came to an end. Some interesting things happened after that: I found the time to get started on Confident Ruby, the book I’d been putting off for months. I also started selling early … &lt;a href="http://devblog.avdi.org/2012/07/09/stepping-off-the-ledge/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000009"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000009"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>A few weeks ago my “primary” contract came to an end. Some interesting things happened after that:</p>
+<ul>
+<li>I found the time to get started on <a href="http://confidentruby.com"><em>Confident Ruby</em></a>, the book I’d been putting off for months. I also started selling early access to it, to a frankly astounding level of response.</li>
+<li>I recorded and distributed <a href="http://devblog.avdi.org/2012/06/12/objects-on-rails-sponsor-edition-now-includes-a-conversation-with-sandi-metz/">a conversation with Sandi Metz with the “sponsor edition” of <em>Objects on Rails</em></a>, to a similarly excellent reception.</li>
+<li>I started spending more time with my kids. I took my elder son to the movies for the first time since… I don’t know when.</li>
+<li>I started working out again, for the first time in over a year. I stopped drinking half a pot of coffee every morning.</li>
+<li>Apart from unease over where the money would come from, I relaxed and generally had a better attitude.</li>
+</ul>
+<p>In short, I chilled out, got around to stuff I’d been putting off, did more of the things that make life worthwhile, and generally improved my state of mind and body.</p>
+<p>When an opportunity came up to take on another consulting client that would fill a pretty big chunk of my time, I realized: <em>I didn’t want to</em>. I’ve been working on other people’s projects for well over a decade, and <a href="http://devblog.avdi.org/2011/08/22/your-code-is-my-hell/">I’m kind of burnt out on it</a>.</p>
+<p>So here it is: I’m stepping out into thin air and dedicating the bulk of my time to things that get <em>me</em> excited. I’ve been incredibly blessed so far in that my book sales have started to form a meaningful percentage (though not a majority) of my income. Now I’m going to see if doing what I love can actually support my family.</p>
+<p>This is exhilarating but also fairly terrifying. As some of you know, I’m the sole earner for a family of six, soon to be seven. This could easily be one of the dumbest decisions I’ve ever made. I’m going to work hard to prove otherwise.</p>
+<p>Concretely, here are some of the projects I’ll be spending my time on:</p>
+<h3>Confident Ruby!</h3>
+<p>First and foremost, I’ll be redoubling my efforts at writing <em>Confident Ruby</em>. Expect big updates soon, as well as proper ebook formats and all that jazz.</p>
+<h3>Ruby Tapas!</h3>
+<p>I’m once again <a href="http://www.rubytapas.com/">collecting email addresses for Ruby Tapas</a>, my planned subscription-based screencast series.</p>
+<h3> Pair-Program with Me!</h3>
+<p>It’s time to make “official” something I’ve been quietly doing for a year or more. Which is: I am available for short pair-programming appointments. These appointments can take various forms, e.g.</p>
+<ul>
+<li>Tutoring on languages and tools like Ruby, Rails, RSpec, Emacs, and more.</li>
+<li>Training in TDD, refactoring, and object design.</li>
+<li>Consulting on thorny implementation problems.</li>
+<li>Guided refactoring of “messy” code that is causing development headaches.</li>
+<li>Free sessions working on Open-Source projects.</li>
+</ul>
+<p>I’ve put together <a href="/pair-programming-services/">a page with a lot more detail</a> about the kind of pair-programming services  I can provide, along with some testimonials from people I’ve paired with already.</p>
+<h3>Products</h3>
+<p>I have some product ideas I’ve been sitting on for way too long, including one centered around ebook publishing that I’m particularly excited about. Watch this space…</p>
+<h3>Training?</h3>
+<p>Some folks have suggested I put together and sell training sessions. This sounds like it could be fun. What do you think? If there’s something you’d like to learn from me in the context of a group training session, let me know in the comments! I’m thinking they would probably be done over a Google Hangout, since with a baby about to arrive I’m not going anywhere.</p>
+<h3>Geronimo!</h3>
+<p>I’m nervous as hell about this, but psyched as well. Thank you to everyone who has supported all my stuff to the point that I could even consider a step like this. I’m not sure what the future holds, but I’m lucky to have you all along for the ride!</p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c000009"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c000009"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vBHWDs6RXyE:LX3g6DiKyM8:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vBHWDs6RXyE:LX3g6DiKyM8:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=vBHWDs6RXyE:LX3g6DiKyM8:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vBHWDs6RXyE:LX3g6DiKyM8:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=vBHWDs6RXyE:LX3g6DiKyM8:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vBHWDs6RXyE:LX3g6DiKyM8:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vBHWDs6RXyE:LX3g6DiKyM8:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/vBHWDs6RXyE" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/07/09/stepping-off-the-ledge/feed/</wfw:commentRss>
+		<slash:comments>18</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/07/09/stepping-off-the-ledge/</feedburner:origLink></item>
+		<item>
+		<title>Birthday Sale! 50% off “Confident Ruby”, Today Only</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/pXXvs3w6QjU/</link>
+		<comments>http://devblog.avdi.org/2012/07/05/birthday-sale-50-off-confident-ruby-today-only/#comments</comments>
+		<pubDate>Thu, 05 Jul 2012 04:00:15 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Announcements]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2551</guid>
+		<description>Once again I'm celebrating my birthday with a one-day sale! &lt;a href="http://devblog.avdi.org/2012/07/05/birthday-sale-50-off-confident-ruby-today-only/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000a"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000a"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>Last year for my birthday I celebrated by offering <a href="http://exceptionalruby.com"><em>Exceptional Ruby</em></a> for 50% off. This year, I’m putting early access to my next book <em>Confident Ruby</em> on sale. Just use this code when you buy the book to get 50% off:</p>
+<pre style="text-align: center;"><strong>HAPPY0XF0</strong></pre>
+<p style="text-align: left;">This code is good for today (July 5, 2012) only.</p>
+<p style="text-align: left;">For more information about <em>Confident Ruby</em> <a href="http://devblog.avdi.org/2012/06/05/confident-ruby-beta/">see the introductory blog post</a>. This is early access to a work-in-progress, so you’ll get to watch as I write the book.</p>
+<p style="text-align: left;"><div class="cta "><p class="medium"><a href="https://shiprise.dpdcart.com/cart/add?product_id=39130&method_id=39361">Buy now!</a></p></div></p>
+<p style="text-align: left;">I just want to take this opportunity to once again thank everyone reading this for all the support for my writing, speaking, and podcasting. In this thirty-second year of my life I’m going to try harder than ever to help programmers code confidently, productively, and, most of all, joyfully.</p>
+<p style="text-align: left;">Cheers everyone!</p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000a"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000a"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=pXXvs3w6QjU:5pxcBhnPGME:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=pXXvs3w6QjU:5pxcBhnPGME:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=pXXvs3w6QjU:5pxcBhnPGME:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=pXXvs3w6QjU:5pxcBhnPGME:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=pXXvs3w6QjU:5pxcBhnPGME:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=pXXvs3w6QjU:5pxcBhnPGME:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=pXXvs3w6QjU:5pxcBhnPGME:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/pXXvs3w6QjU" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/07/05/birthday-sale-50-off-confident-ruby-today-only/feed/</wfw:commentRss>
+		<slash:comments>2</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/07/05/birthday-sale-50-off-confident-ruby-today-only/</feedburner:origLink></item>
+		<item>
+		<title>Every day, in every way</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/vbb0Ka8BEgY/</link>
+		<comments>http://devblog.avdi.org/2012/06/25/every-day-in-every-way/#comments</comments>
+		<pubDate>Mon, 25 Jun 2012 17:06:54 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Rants]]></category>
+		<category><![CDATA[refactoring]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2478</guid>
+		<description>It's time to reclaim the lost art of refactoring. &lt;a href="http://devblog.avdi.org/2012/06/25/every-day-in-every-way/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000b"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000b"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>In a Thoughtbot article, Joe Ferris asks “<a href="http://robots.thoughtbot.com/post/25853313661/how-much-should-i-refactor">how much should I refactor?</a>“. The original XP practices have an answer of sorts: “<a href="http://c2.com/cgi/wiki?RefactorMercilessly">mercilessly</a>“.</p>
+<p>Quoting Ron Jeffries:</p>
+<blockquote><p>One of the <a href="http://c2.com/cgi/wiki?ExtremeProgramming">ExtremeProgramming</a> practices is to <a href="http://c2.com/cgi/wiki?RefactorMercilessly">RefactorMercilessly</a>. When you find two methods that look the same, you refactor the code to combine them. When you find two objects with common functionality, you refactor to make there be just one (see <a href="http://c2.com/cgi/wiki?ParameterizeMethod">ParameterizeMethod</a>). Extreme projects do not use <a href="http://c2.com/cgi/wiki?BigDesignUpFront">BigDesignUpFront</a>. Therefore they upgrade their designs continuously. <a href="http://c2.com/cgi/wiki?RelentlessTesting">RelentlessTesting</a> and <a href="http://c2.com/cgi/wiki?ContinuousIntegration">ContinuousIntegration</a> (<a href="http://c2.com/cgi/wiki?UnitTest">UnitTest</a>s synchronized with changes disseminated to other engineers) permit changes that would introduce the risk of bugs in slower projects.</p>
+<p>[...]</p>
+<p>Since we <a href="http://c2.com/cgi/wiki?DoTheSimplestThingThatCouldPossiblyWork">DoTheSimplestThingThatCouldPossiblyWork</a>, sometimes what we do needs improvement an iteration or so down the line. We welcome these opportunities to make the system more like what it should be, and we welcome the fact that we do it in solid knowledge of what is <em>really</em> needed, not what we imagined in the past was needed.</p>
+<p>The result of this is that the system is always as simple as we can make it, which means we can understand it better, which means we can change it more rapidly while keeping it reliable.</p></blockquote>
+<p>When <a href="http://devblog.avdi.org/2012/06/12/objects-on-rails-sponsor-edition-now-includes-a-conversation-with-sandi-metz/">I asked Sandi Metz</a> how long a refactoring should take, she said:</p>
+<blockquote><p>Oh, like… a minute? …to tear a class apart into two classes takes a little bit of time, 10 minutes or so.</p></blockquote>
+<p>This is consistent with my own experience, and, I believe, with the intent of the original <a href="http://jamesshore.com/Blog/Red-Green-Refactor.html">Red Green Refactor</a> cycle. I think it’s also consistent with the view DHH expressed <a href="http://rubyrogues.com/056-rr-david-heinemeier-hansson/">when the RubyRogues interviewed him</a>: wait until the last minute, until you feel the pain, and then refactor. Immediately.</p>
+<p>I’ve watched the meaning of the word “refactoring” drift over the past several years. I don’t know if this is specific to the Ruby community or a larger problem in the software industry. But on nearly every project I’ve been on, I’ve heard statements like this in iteration planning meetings:</p>
+<blockquote><p>Oh, this feature is going to touch the Frotz class. We’ll need to add some time to the estimation. The Frotz class is a huge mess, we really need to schedule time to refactor it.</p></blockquote>
+<p>Nearly every project has had areas which everyone recognized as painful. In fact, everyone had been recognizing those areas as painful for weeks or months.</p>
+<p>If there’s an area of the code that everyone has recognized as painful for weeks, the time for refactoring has been and gone. That battle is lost. It’s not called “Red Green Red Green Red Green Spend A Whole Day Refactoring”. We’re not talking about refactoring anymore; we’re in <a href="http://java.dzone.com/articles/code-refurbishment">Code Refurbishment</a> territory now:</p>
+<blockquote><p>developers are actually talking about a much more extensive structural redevelopment technique that does not have a common term.  These structural changes are often not a complete ground-up rewrite because much of the existing code will be reused.</p></blockquote>
+<p>The refurbishment process may consist of many small refactorings. But it’s likely to be more than that: refactoring always takes place in the context of test coverage, and often refurbishment involves, first, making the code more amenable to testing and then adding new tests.</p>
+<p>Does terminology matter? I think it does, because I’ve also observed that true refactoring, and the easy, pleasurable coding experience that accompanies it, is becoming something of a lost art. When we talk about “scheduling some refactoring time for the next iteration”, we tell novice programmers (as well as ourselves) that refactoring is something that can be put off. And over time, we lose (or never discover) the Red-Green-Refactor rhythm.</p>
+<p>When we chose agile methods, we made a deal with ourselves and our stakeholders: we’ll trade the supposed assurances of careful up-front design for constant, iterative just-in-time design.  Refactoring is where much of that minute-by-minute design happens. When we have “skeleton closet” classes which have become <em>everyone’s</em> pain point for weeks on end, it means we reneged on the deal. Now we are doing the same periodic Big Rewrites that were the hallmark of <a href="http://c2.com/cgi/wiki?BigDesignUpFront">BDUF</a>. And our stakeholders become understandably leary of this “refactoring” business. Quoting <a href="http://java.dzone.com/articles/code-refurbishment">Martin Thompson</a> again:</p>
+<blockquote><p>The reason the business folk have come to recoil is that they fear we are about to head off into uncharted waters with no idea of how long things will take and if any value will come out of the exercise.</p></blockquote>
+<p>I think that for our own happiness and for the health of our projects, if we’re going to keep practicing this “agile” or “lean” stuff we need to make a conscious effort to restore refactoring to its original place, right in the heart of the rhythm and flow of coding. In order to do that, several factors are required:</p>
+<ul>
+<li><strong>We must be hypersensitive to pain</strong>. If we’re noticing a lot of churn in one class over a period of months, that’s too late. And it’s not enough to be able to say “hm, these two methods look similar, maybe I should DRY them up”. We need to be able to make deeper observations such as: “I just changed three methods in order to support one new field. That’s <a href="http://c2.com/cgi/wiki?ShotgunSurgery">Shotgun Surgery</a>. What can I do to avoid that?”</li>
+<li><strong>We must have comprehensive, reliable, fast automated tests</strong>. If we feel a moment’s hesitation before refactoring, either because the we’re not confident that the tests will keep us from accidentally changing behavior; we’re concerned our changes will require tests to be fixed as well; or we just don’t want to wait for the tests to run to verify our changes, that’s the death knell for our refactoring practice.</li>
+<li><strong>We must have a license to refactor</strong>. The project’s team culture must establish a “safe space” for refactoring. It cannot be a dirty word, something we feel a little bit guilty about every time we take a minute to extract a method.</li>
+<li><strong>We must have good tools</strong>. The people who came up with the idea of refactoring also came up with the Smalltalk Refactoring Browser, a point-and-click environment for automating common refactorings. If we are to make refactoring habitual, at the very least we need editors which make it easy to <a href="http://devblog.avdi.org/2011/02/24/screencast-why-keyboard-macros-are-awesome/">automate frequent tasks</a>, and the willingness to learn to use them effectively.</li>
+</ul>
+<p>I’d love to end this with a list of resources for mastering the art of refactoring. One that I always recommend to Ruby programmers is <em><a href="http://www.amazon.com/gp/product/0321545044/ref=as_li_ss_tl?ie=UTF8&tag=thlafa-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=0321545044">Refactoring in Ruby</a></em>, a workbook companion to the <a href="http://www.amazon.com/gp/product/0321603508/ref=as_li_ss_tl?ie=UTF8&tag=thlafa-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=0321603508"><em>Refactoring, Ruby Edition</em></a> (those are Amazon affiliate links). Unfortunately, I’m out of time for writing. So I’ll open the floor: what book/article/screencast/presentation helped you understand refactoring better? Leave a link in the comments!</p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000b"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000b"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vbb0Ka8BEgY:8_9dNaOion0:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vbb0Ka8BEgY:8_9dNaOion0:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=vbb0Ka8BEgY:8_9dNaOion0:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vbb0Ka8BEgY:8_9dNaOion0:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=vbb0Ka8BEgY:8_9dNaOion0:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vbb0Ka8BEgY:8_9dNaOion0:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=vbb0Ka8BEgY:8_9dNaOion0:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/vbb0Ka8BEgY" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/06/25/every-day-in-every-way/feed/</wfw:commentRss>
+		<slash:comments>10</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/06/25/every-day-in-every-way/</feedburner:origLink></item>
+		<item>
+		<title>Use revision control annotation in your editor</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/NUL53GS9bvI/</link>
+		<comments>http://devblog.avdi.org/2012/06/22/use-revision-control-annotation-in-your-editor/#comments</comments>
+		<pubDate>Fri, 22 Jun 2012 17:15:36 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Videos]]></category>
+		<category><![CDATA[emacs]]></category>
+		<category><![CDATA[git]]></category>
+		<category><![CDATA[scm]]></category>
+		<category><![CDATA[vc-annotate]]></category>
+		<category><![CDATA[vcs]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2471</guid>
+		<description>I was discussing comments vs. intention-revealing code with some folks on Twitter today and I realize that there’s a tool I take so much for granted I don’t even think about it any more. The tool is called VC-Annotate in … &lt;a href="http://devblog.avdi.org/2012/06/22/use-revision-control-annotation-in-your-editor/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000c"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000c"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>I was discussing comments vs. intention-revealing code with some folks on Twitter today and I realize that there’s a tool I take so much for granted I don’t even think about it any more. The tool is called <a href="http://www.gnu.org/software/emacs/manual/html_node/emacs/Old-Revisions.html">VC-Annotate</a> in Emacs, but some form of it should exist in every decent editor.</p>
+<p>If you’re a programmer and you’re <em>not</em> using your editor’s revision control annotation features, I strongly recommend learning about them ASAP. They are an essential tool in understanding the story behind the code.</p>
+<p><script type='text/javascript' src='http://content.bitsontherun.com/players/Wy01cNUn-uGtfOrbJ.js'></script></p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000c"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000c"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=NUL53GS9bvI:qg9T6Z9kIrE:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=NUL53GS9bvI:qg9T6Z9kIrE:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=NUL53GS9bvI:qg9T6Z9kIrE:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=NUL53GS9bvI:qg9T6Z9kIrE:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=NUL53GS9bvI:qg9T6Z9kIrE:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=NUL53GS9bvI:qg9T6Z9kIrE:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=NUL53GS9bvI:qg9T6Z9kIrE:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/NUL53GS9bvI" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/06/22/use-revision-control-annotation-in-your-editor/feed/</wfw:commentRss>
+		<slash:comments>5</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/06/22/use-revision-control-annotation-in-your-editor/</feedburner:origLink></item>
+		<item>
+		<title>Building Gems that Don’t Suck – Hashrocket Lunch&amp;Learn Video</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/cbjwc4PRh68/</link>
+		<comments>http://devblog.avdi.org/2012/06/13/building-gems-that-dont-suck-hashrocket-lunchlearn-video/#comments</comments>
+		<pubDate>Wed, 13 Jun 2012 13:00:14 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Presentations]]></category>
+		<category><![CDATA[Videos]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2465</guid>
+		<description>Here’s the video of the other lunch&amp;learn mini-talk I did while visiting Hashrocket. The topic is building and packaging Ruby libraries. Caution: may contain Tom Selleck.&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000d"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000d"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>Here’s the video of the other lunch&learn mini-talk I did while visiting Hashrocket. The topic is building and packaging Ruby libraries.</p>
+<p>Caution: may contain Tom Selleck.</p>
+<p></p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000d"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000d"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=cbjwc4PRh68:Ns9KojKWmC4:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=cbjwc4PRh68:Ns9KojKWmC4:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=cbjwc4PRh68:Ns9KojKWmC4:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=cbjwc4PRh68:Ns9KojKWmC4:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=cbjwc4PRh68:Ns9KojKWmC4:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=cbjwc4PRh68:Ns9KojKWmC4:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=cbjwc4PRh68:Ns9KojKWmC4:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/cbjwc4PRh68" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/06/13/building-gems-that-dont-suck-hashrocket-lunchlearn-video/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/06/13/building-gems-that-dont-suck-hashrocket-lunchlearn-video/</feedburner:origLink></item>
+		<item>
+		<title>Objects on Rails “Sponsor Edition” now includes a conversation with Sandi Metz!</title>
+		<link>http://feedproxy.google.com/~r/VirtuousCode/~3/eYM1_Yh9rTs/</link>
+		<comments>http://devblog.avdi.org/2012/06/12/objects-on-rails-sponsor-edition-now-includes-a-conversation-with-sandi-metz/#comments</comments>
+		<pubDate>Tue, 12 Jun 2012 16:40:20 +0000</pubDate>
+		<dc:creator>Avdi Grimm</dc:creator>
+				<category><![CDATA[Announcements]]></category>
+		<category><![CDATA[Books]]></category>
+
+		<guid isPermaLink="false">http://devblog.avdi.org/?p=2463</guid>
+		<description>Objects on Rails comes in three “editions”. There’s the one you can read for free online. There’s the $5 “download edition”. And I also offer a $20 “Sponsor Edition” for people who really feel like it’s worth more than $5, … &lt;a href="http://devblog.avdi.org/2012/06/12/objects-on-rails-sponsor-edition-now-includes-a-conversation-with-sandi-metz/"&gt;Continue reading &lt;span class="meta-nav"&gt;→&lt;/span&gt;&lt;/a&gt;&lt;p align="center"&gt;&lt;a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000e"&gt;&lt;img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000e"/&gt;&lt;/a&gt;&lt;/p&gt;</description>
+			<content:encoded><![CDATA[<p>Objects on Rails comes in three “editions”. There’s the one you can <a href="http://objectsonrails.com">read for free online</a>. There’s the $5 “download edition”. And I also offer a $20 “Sponsor Edition” for people who really feel like it’s worth more than $5, or who just want to see me do more stuff like Objects on Rails.</p>
+<p>When I announced this Sponsor Edition, I promised a “special goodie” just for buyers of that version.  I pondered for a long time what would make the perfect bonus for the people who were generous enough to pay $20 for a book they could read online for free. Then I met Sandi Metz at RailsConf, and started reading through a draft copy of her terrific upcoming book, <em><a href="http://my.safaribooksonline.com/book/programming/ruby/9780132930895">Practical Object Oriented Design in Ruby</a></em>. And I realized then that I knew what I wanted the bonus to be.</p>
+<p>Last week Sandi was good enough to join me via Skype, and over the course of two sittings we had a wide-ranging conversation about Object Oriented design and Ruby. As a Smalltalk veteran, Sandi brings to the table a perspective which is deeply steeped in the highly dynamic, message-oriented OO tradition, and free of the static Java/C++-style baggage that so many of us (myself included!) bring to Ruby. She also has a gift for making nebulous concepts like “abstraction vs. concretion” accessible and immediately useful.</p>
+<p>The final recording is a little over two and a half hours long. Some of the topics we discussed include:</p>
+<ul>
+<li>How Smalltalk influences her approach to Ruby and OO</li>
+<li>The meaning of “design”</li>
+<li>Viscous code vs. exemplary code</li>
+<li>How your design can affect how other programmers think about the domain</li>
+<li>When to call code “good enough”, and why that should change based on your “audience” (who will read and modify the code).</li>
+<li>Anthropomorphising objects: good thing or bad thing?</li>
+<li>Focusing on messages rather than objects</li>
+<li>Thinking about Roles instead of Classes</li>
+<li>Refactoring and patterns</li>
+<li>…and a heck of a lot more</li>
+</ul>
+<p>If you bought the Sponsor Edition, you should already have a product update email in your inbox. If you bought the $5 download edition, you should also have an email in your inbox with a discount code, should you decide to “upgrade”. If you have neither, you can find both editions in<a href="https://shiprise.dpdcart.com/"> my store</a>.</p>
+<p>Once again, I’d like to express my gratitude to all the people who support my writing, and especially those who were willing to drop $20 on a book they could read online for free. I hope you enjoy this recording as much as I enjoyed making it.</p>
+<p align="center"><a href="http://engine.influads.com/click/503be44ae1f1dfbf5c00000e"><img rel="nofollow" src="http://engine.influads.com/image/503be44ae1f1dfbf5c00000e"/></a></p><div class="feedflare">
+<a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=eYM1_Yh9rTs:qXw3Qp_82MU:yIl2AUoC8zA"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=yIl2AUoC8zA" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=eYM1_Yh9rTs:qXw3Qp_82MU:D7DqB2pKExk"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=eYM1_Yh9rTs:qXw3Qp_82MU:D7DqB2pKExk" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=eYM1_Yh9rTs:qXw3Qp_82MU:F7zBnMyn0Lo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?i=eYM1_Yh9rTs:qXw3Qp_82MU:F7zBnMyn0Lo" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=eYM1_Yh9rTs:qXw3Qp_82MU:cGdyc7Q-1BI"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=cGdyc7Q-1BI" border="0"></img></a> <a href="http://feeds.feedburner.com/~ff/VirtuousCode?a=eYM1_Yh9rTs:qXw3Qp_82MU:bcOpcFrp8Mo"><img src="http://feeds.feedburner.com/~ff/VirtuousCode?d=bcOpcFrp8Mo" border="0"></img></a>
+</div><img src="http://feeds.feedburner.com/~r/VirtuousCode/~4/eYM1_Yh9rTs" height="1" width="1"/>]]></content:encoded>
+			<wfw:commentRss>http://devblog.avdi.org/2012/06/12/objects-on-rails-sponsor-edition-now-includes-a-conversation-with-sandi-metz/feed/</wfw:commentRss>
+		<slash:comments>1</slash:comments>
+		<feedburner:origLink>http://devblog.avdi.org/2012/06/12/objects-on-rails-sponsor-edition-now-includes-a-conversation-with-sandi-metz/</feedburner:origLink></item>
+	</channel>
+</rss>

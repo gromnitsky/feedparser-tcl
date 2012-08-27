@@ -1,0 +1,33 @@
+#!/usr/bin/env tclsh
+
+tcl::tm::path add [file dirname [file normalize [info script]]]/../lib
+package require feedparser
+
+encoding system utf-8
+
+proc usage {} {
+	puts stderr "Usage: [file tail $::argv0] file.xml"
+	exit $cliutils::EX_USAGE
+}
+
+if {$argc < 1} usage
+
+set feed [feedparser::u::parse [lindex $argv 0]]
+
+# dump all feed headlines
+foreach {k v} [$feed headlines] {
+	puts [format "%-14s: %s" $k $v]
+}
+puts [format "%-14s: %d" "# of entries" [$feed size]]
+
+# dump all feed entries
+foreach {n e} [$feed entries] {
+	puts ""
+	# current entry number
+	puts [format "%-14s: %d" "#" $n]
+	
+	foreach {k v} $e {
+		if {$k eq "pubDate"} { set v [clock format $v] }
+		puts [format "%-14s: %s" $k $v]
+	}
+}
