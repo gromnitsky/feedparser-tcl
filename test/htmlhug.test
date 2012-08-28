@@ -15,3 +15,7 @@ test tagsRemove 0 -body {
 test tagsRemoveUnsafe 0 -body {
 	return [htmlhug::tagsRemoveUnsafe "text <script>I'm evil</script> only"]
 } -result {text  only}
+
+
+# statistics
+cleanupTests

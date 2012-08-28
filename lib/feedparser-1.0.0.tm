@@ -5,7 +5,7 @@ package require tdom
 package require cliutils
 package require htmlhug
 
-# set feed [feedparser::parse $xml]
+# set feed [feedparser::u::parse $xml]
 # puts [$feed headline title]
 # puts [$feed headlines]
 # puts [$feed entry 12 description]
@@ -280,7 +280,7 @@ namespace eval feedparser::dom {}
 
 proc feedparser::dom::parse { xml } {
 	# pre-process xml to remove any processing instruction
-	regsub {^<\?xml [^\?]+\?>} $xml {<?xml version="1.0"?>} xml
+	regsub {<\?xml\s[^\?]+\?>} $xml {<?xml version="1.0"?>} xml
 
 	set doc [dom parse $xml]
 	set doc_node [$doc documentElement]
