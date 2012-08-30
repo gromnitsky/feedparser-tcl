@@ -229,7 +229,7 @@ test nodesGetAsText "dc:date" -body {
 
 test pluginsLoad "all" -body {
 	return $::feedparser::pluginsList
-} -result {dcmes}
+} -result {rdf dcmes nonstandard}
 
 test dcmes-plugin 0 -body {
 	set feed [::feedparser::dom::parse $sample0_xml]

@@ -509,14 +509,6 @@ proc ::feedparser::dom::parseEntry { node } {
 		}
 	}
 
-	# rdf/1.0
-	set content_encoded ""
-	set encoded_nodes [$node selectNodes {*[local-name()='encoded' and namespace-uri()='http://purl.org/rss/1.0/modules/content/']}]
-	if { [llength $encoded_nodes] == 1 } {
-		set encoded_node [lindex $encoded_nodes 0]
-		set content_encoded [$encoded_node text]
-	}
-
 	if {$link == "" && $guid != ""} { set link $guid }
 	
 	# Try to handle Atom guid
@@ -563,20 +555,6 @@ proc ::feedparser::dom::parseEntry { node } {
 			} else {
 				set author [string trim $author]
 			}
-		}
-
-		# merge content_encoded into descriptions
-		if {[string length $content_encoded] >  [string length $description]} {
-			set description $content_encoded
-		}
-
-		# Many Ukrainian news agents add to items of their rss/2.0 feeds
-		# a non-standard 'fulltext' element that contains a text that is
-		# bigger than a text in 'description' element. I don't know why
-		# the fuck is that & who is to blame.
-		set_child_text $node fulltext
-		if {[string length $fulltext] > [string length $description]} {
-			set description $fulltext
 		}
 	}
 

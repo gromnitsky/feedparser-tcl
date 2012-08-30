@@ -26,8 +26,14 @@ A basic usage of the API:
 	# if you don't need the parsing object anymore
 	$feed objDelete
 
+To parse elements in a feed beyond subsets of rss/atom specs, the parser
+loads at startup some plugins (see `lib/plugins` directory). You can
+(relatively easily) add your own by using existing ones as an example.
+
 
 __TODO:__
 
-* xml namespaces as plugins
+* plugin docs
+* enclosures 
+* categories
 * more tests on shady feeds
