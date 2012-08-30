@@ -18,7 +18,8 @@ namespace eval ::feedparser {
 	variable validHeadline \
 		[list copyright description generator link managingEditor title]
 	variable validEntry \
-		[list author author_email comments description guid link pubDate title]
+		[list author author_email comments description guid link pubDate title \
+			category]
 
 	# plugins
 	variable pluginsList [list]
@@ -520,6 +521,9 @@ proc ::feedparser::dom::parseEntry { node } {
 		}
 	}
 
+	# category
+	set category [::feedparser::dom::parseCategory $node $maybe_atom_p]
+	
 	if { $maybe_atom_p } {
 		# for atom, description is summary, content is content_encoded;
 		# we will use the bigger one as the description
@@ -589,4 +593,34 @@ proc ::feedparser::dom::nodesGetAsText { node xmlns nodeName } {
 	}
 	
 	return [list]
+}
+
+proc ::feedparser::dom::parseCategory { node isAtom } {
+	if {$node == ""} { return [list] }
+	
+	set r [list]
+	
+	if {$isAtom} {
+		# prefer 'term'
+		foreach idx {term label} {
+			set cats [$node selectNodes \
+						  [format {*[local-name()='category']/@%s} $idx] ]
+			if {[llength $cats] > 0} {
+				foreach c $cats {
+					# c is "term {value}"
+					lappend r [string trim [lindex $c 1]]
+				}
+				break
+			}
+		}
+	} else {
+		set cats [$node selectNodes {*[local-name()='category']} ]
+		if {[llength $cats] > 0} {
+			foreach c $cats {
+				lappend r [string trim [$c text]]
+			}
+		}
+	}
+
+	return $r
 }

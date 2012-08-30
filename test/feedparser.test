@@ -80,7 +80,7 @@ test objNew "invalid entry param" -setup {
 } -body {
 	$o entrySet 0 foo "in bar"
 } -returnCodes error \
-	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title"
+	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title, category"
 
 
 #
@@ -211,6 +211,8 @@ set sample0_xml {<?xml version="1.0" encoding="UTF-8"?>
 	<dc:description>a text</dc:description>
 	<dc:description>text 2</dc:description>
 	<dc:creator>John Doe</dc:creator>
+	<category>foo</category>
+	<category>2 bars</category>
 </item>
 </rss>}
 set sample0_doc [dom parse $sample0_xml]
@@ -234,7 +236,33 @@ test pluginsLoad "all" -body {
 test dcmes-plugin 0 -body {
 	set feed [::feedparser::dom::parse $sample0_xml]
 	$feed entryWhole 1
-} -result {description {a text} pubDate 1597032000 guid {} title Flemsday link {} comments {} author_email {} author {John Doe}}
+} -result {description {a text} pubDate 1597032000 guid {} category {foo {2 bars}} title Flemsday link {} comments {} author_email {} author {John Doe}}
+
+set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<updated>2012-08-28T17:40:36Z</updated>
+<entry>
+<title><![CDATA[Incremental Clicks]]></title>
+<updated>2012-08-28T16:13:45Z</updated>
+<id>urn:googlelabs:38334</id>
+<link rel="alternate" href="http://research.google.com/pubs/pub38334.html" type="text/html"/>
+<category term="Electronic Commerce" label="Electronic Commerce"/>
+<category term="foo"  label="bar"/>
+<category label="hidden"/>
+</entry>
+</feed>	
+}
+set sample1_doc [dom parse $sample1_xml]
+set sample1_node [$sample1_doc documentElement]
+set sample1_entries [$sample1_node selectNodes {//*[local-name()='item' or local-name()='entry']}]
+
+test atomParsing 0 -body {
+	set feed [::feedparser::dom::parse $sample1_xml]
+	$feed entryWhole 0
+} -result {description {} pubDate 1346170425 guid urn:googlelabs:38334\
+category {{Electronic Commerce} foo} title {Incremental Clicks}\
+link http://research.google.com/pubs/pub38334.html comments {}\
+author_email {} author {}}
 
 
 # statistics

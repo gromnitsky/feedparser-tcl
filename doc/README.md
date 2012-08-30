@@ -1,4 +1,4 @@
-A small Atom/RSS parser in Tcl 8.5+.
+A small Atom/RSS parser in Tcl 8.5+. Requires tDOM.
 
 Run `bin/feedparser` to test parsing of `test/data/feeds/*` files.
 
@@ -30,10 +30,8 @@ To parse elements in a feed beyond subsets of rss/atom specs, the parser
 loads at startup some plugins (see `lib/plugins` directory). You can
 (relatively easily) add your own by using existing ones as an example.
 
-
 __TODO:__
 
 * plugin docs
 * enclosures 
-* categories
 * more tests on shady feeds
