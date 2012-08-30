@@ -8,6 +8,7 @@ incr cliutils::verbose
 
 #
 # Encoding tests
+#
 
 test enc_mapping "unknown" -body {
 	feedparser::u::iana2tcl foobar
@@ -36,8 +37,10 @@ test getEncoding "unknown" -body {
 } -result utf-8 -match glob \
 	-errorOutput "*unknown encoding*"
 
+
 #
 # Idiotic emulation of a class
+#
 
 test objNew 0 -setup {
 	set o [feedparser::objNew]
@@ -79,8 +82,10 @@ test objNew "invalid entry param" -setup {
 } -returnCodes error \
 	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title"
 
+
 #
 # Feeds parsing
+#
 
 set korr [feedparser::u::parse data/feeds/news.korr]
 set pike [feedparser::u::parse data/feeds/comp.rob_pike]
@@ -176,6 +181,46 @@ test parseDate 0 -body {
 test parseDate 0 -body {
 	feedparser::dom::parseDate "15 Oct 2008 22:34:20 EST"
 } -result 1224128060
+
+
+#
+# Nodes getters (mostly for plugins)
+#
+
+set sample0_xml {<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	 xmlns:atom="http://www.w3.org/2005/Atom"
+	 xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	 xmlns:dc="http://purl.org/dc/elements/1.1/"
+	 xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	 xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	 xmlns:feedburner="http://rssnamespace.org/feedburner/ext/1.0"
+	 version="2.0">
+<channel>
+	<title>tdom test</title>
+</channel>
+	<item>
+	<dc:date>Mon, 27 Aug 2012 04:00:00 +0000</dc:date>
+	<dc:date>Mon, 28 Aug 2012 04:00:00 +0000</dc:date>
+	</item>
+<item>
+	<dc:creator>John Doe</dc:creator>
+</item>
+</rss>}
+set sample0_doc [dom parse $sample0_xml]
+set sample0_node [$sample0_doc documentElement]
+set sample0_entries [$sample0_node selectNodes {//*[local-name()='item' or local-name()='entry']}]
+
+test nodesGetAsText "dc:date" -body {
+	set r [list]
+	foreach idx $sample0_entries {
+		lappend r [feedparser::dom::nodesGetAsText $idx \
+					   {dublin "http://purl.org/dc/elements/1.1/"} \
+					   "date"]
+	}
+	return $r
+} -result {{{Mon, 27 Aug 2012 04:00:00 +0000} {Mon, 28 Aug 2012 04:00:00 +0000}} {}}
+
 
 
 # statistics

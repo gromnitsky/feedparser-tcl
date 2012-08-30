@@ -19,6 +19,9 @@ namespace eval feedparser {
 		[list copyright description generator link managingEditor title]
 	variable validEntry \
 		[list author author_email comments description guid link pubDate title]
+
+	# load plugins
+	# TODO
 }
 
 # Constructor
@@ -221,6 +224,9 @@ namespace eval feedparser::u {
 		ibm866 cp866
 		csibm866 cp866
     }
+
+	# glob
+	variable pluginsFilter "*"
 }
 
 proc feedparser::u::iana2tcl {iana} {
@@ -274,6 +280,10 @@ proc feedparser::u::readXML { filename } {
 proc feedparser::u::parse { filename } {
 	set xml [feedparser::u::readXML $filename]
 	return [feedparser::dom::parse $xml]
+}
+
+proc feedparser::u::pluginsRun {node r} {
+	# TODO
 }
 
 namespace eval feedparser::dom {}
@@ -465,7 +475,7 @@ proc feedparser::dom::parseEntry { node } {
 
 	# a small hack with date
 	if {$pubDate == ""} {
-		foreach idx {dc:date updated published} {
+		foreach idx {updated published} {
 			feedparser::dom::set_child_text $node $idx
 			if {[set pubDate [set $idx]] != ""} break
 		}
@@ -554,12 +564,35 @@ proc feedparser::dom::parseEntry { node } {
 		}
 	}
 
-	# remove unsafe html
-	set description [htmlhug::tagsRemoveUnsafe $description]
-
 	foreach idx $::feedparser::validEntry {
 		set r($idx) [set $idx]
 	}
-	
+
+	# run plugins
+	feedparser::u::pluginsRun $node r
+
+	# remove unsafe html
+	set r(description) [htmlhug::tagsRemoveUnsafe $r(description)]
+
 	return [array get r]
+}
+
+# Return text values of all nodes names nodeName. Return an empty list
+# for non-existing nodeName.
+#
+# node -- a node to start search with
+# xmlns -- a list {namespace1 uri namespace2 uri ...}
+# nodeName -- a local node name, without a namespace prefix
+proc feedparser::dom::nodesGetAsText { node xmlns nodeName } {
+	if {$node == "" || $xmlns == "" || $nodeName == ""} { return [list] }
+	
+	set n [$node selectNodes -namespaces $xmlns \
+			   [format {*[local-name()='%s']} $nodeName] ]
+	if {[llength $n] > 0} {
+		set r [list]
+		foreach idx $n { lappend r [string trim [$idx text]] }
+		return $r
+	}
+	
+	return [list]
 }
