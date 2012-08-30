@@ -204,6 +204,12 @@ set sample0_xml {<?xml version="1.0" encoding="UTF-8"?>
 	<dc:date>Mon, 28 Aug 2012 04:00:00 +0000</dc:date>
 	</item>
 <item>
+	<pubDate>Mon, 10 Aug 2020 04:00:00 +0000</pubDate>
+	<dc:title>Flemsday</dc:title>
+	<dc:title>Flemsday</dc:title>
+	<dc:creator>John Doe</dc:creator>
+	<dc:description>a text</dc:description>
+	<dc:description>text 2</dc:description>
 	<dc:creator>John Doe</dc:creator>
 </item>
 </rss>}
@@ -221,6 +227,14 @@ test nodesGetAsText "dc:date" -body {
 	return $r
 } -result {{{Mon, 27 Aug 2012 04:00:00 +0000} {Mon, 28 Aug 2012 04:00:00 +0000}} {}}
 
+test pluginsLoad "all" -body {
+	return $::feedparser::pluginsList
+} -result {dcmes}
+
+test dcmes-plugin 0 -body {
+	set feed [::feedparser::dom::parse $sample0_xml]
+	$feed entryWhole 1
+} -result {description {a text} pubDate 1597032000 guid {} title Flemsday link {} comments {} author_email {} author {John Doe}}
 
 
 # statistics

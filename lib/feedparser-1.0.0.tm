@@ -12,7 +12,7 @@ package require htmlhug
 # puts [$feed entryWhole 12]
 # puts [$feed size]
 # puts [$feed entries]
-namespace eval feedparser {
+namespace eval ::feedparser {
 	variable objCount 0
 
 	variable validHeadline \
@@ -20,19 +20,31 @@ namespace eval feedparser {
 	variable validEntry \
 		[list author author_email comments description guid link pubDate title]
 
-	# load plugins
-	# TODO
+	# plugins
+	variable pluginsList [list]
+	variable pluginsDir [file dirname [info script]]/plugins
+
+	# load all
+	foreach idx [glob $pluginsDir/*.tcl] {
+		source $idx
+		lappend pluginsList [regsub -- {\.tcl$} [file tail $idx] ""]
+	}
+
+	# execute hookStart for each plugin
+	foreach idx $pluginsList {
+		::feedparser::p::${idx}::hookStart
+	}
 }
 
 # Constructor
-proc feedparser::objNew {} {
+proc ::feedparser::objNew {} {
 	variable objCount
 	
 	set self [namespace current]
 	namespace eval [incr objCount] {
 		variable d [dict create]
 		dict set d f [dict create]
-		foreach i $feedparser::validHeadline { dict set d f $i {} }
+		foreach i $::feedparser::validHeadline { dict set d f $i {} }
 		dict set d e [dict create]
 	}
 
@@ -41,18 +53,18 @@ proc feedparser::objNew {} {
 }
 
 # Method dispatcher
-proc feedparser::dispatch {this cmd args} {
+proc ::feedparser::dispatch {this cmd args} {
 	eval $cmd $this $args
 }
 
 # Destructor (invoked by dispatch as every other 'instance method')
-proc feedparser::objDelete {this} {
+proc ::feedparser::objDelete {this} {
 	namespace delete $this
     interp alias {} [namespace current]::$this {}	
 }
 
 # Getter
-proc feedparser::headline { this param } {
+proc ::feedparser::headline { this param } {
 	# ::feedparser::NUMBER::d
 	set d [set ${this}::d]
 
@@ -64,7 +76,7 @@ proc feedparser::headline { this param } {
 }
 
 # Return all headlines
-proc feedparser::headlines { this } {
+proc ::feedparser::headlines { this } {
 	# ::feedparser::NUMBER::d
 	set d [set ${this}::d]
 
@@ -72,7 +84,7 @@ proc feedparser::headlines { this } {
 }
 
 # Setter
-proc feedparser::headlineSet { this param val } {
+proc ::feedparser::headlineSet { this param val } {
 	variable validHeadline
 	
 	# $d == ::feedparser::NUMBER::d
@@ -86,7 +98,7 @@ proc feedparser::headlineSet { this param val } {
 }
 
 # Return length of feed entries
-proc feedparser::size {this} {
+proc ::feedparser::size {this} {
 	# ::feedparser::NUMBER::d
 	set d [set ${this}::d]
 
@@ -94,7 +106,7 @@ proc feedparser::size {this} {
 }
 
 # Getter
-proc feedparser::entry {this n param} {
+proc ::feedparser::entry {this n param} {
 	# ::feedparser::NUMBER::d
 	set d [set ${this}::d]
 
@@ -106,7 +118,7 @@ proc feedparser::entry {this n param} {
 }
 
 # Getter
-proc feedparser::entryWhole {this n} {
+proc ::feedparser::entryWhole {this n} {
 	# ::feedparser::NUMBER::d
 	set d [set ${this}::d]
 
@@ -118,7 +130,7 @@ proc feedparser::entryWhole {this n} {
 }
 
 # Setter
-proc feedparser::entrySet {this n param val} {
+proc ::feedparser::entrySet {this n param val} {
 	variable validEntry
 	
 	if {[lsearch $validEntry $param] == -1} {
@@ -134,14 +146,14 @@ proc feedparser::entrySet {this n param val} {
 }
 
 # Setter
-proc feedparser::entryWholeSet {this n vals} {
+proc ::feedparser::entryWholeSet {this n vals} {
 	foreach {key val} $vals {
 		entrySet $this $n $key $val
 	}
 }
 
 # Return all entries
-proc feedparser::entries {this} {
+proc ::feedparser::entries {this} {
 	# ::feedparser::NUMBER::d
 	set d [set ${this}::d]
 	
@@ -149,7 +161,7 @@ proc feedparser::entries {this} {
 }
 
 
-namespace eval feedparser::u {
+namespace eval ::feedparser::u {
     # iana_charsets -> tcl_charset_names
     array set enc {
 		us-ascii ascii
@@ -224,12 +236,9 @@ namespace eval feedparser::u {
 		ibm866 cp866
 		csibm866 cp866
     }
-
-	# glob
-	variable pluginsFilter "*"
 }
 
-proc feedparser::u::iana2tcl {iana} {
+proc ::feedparser::u::iana2tcl {iana} {
 	variable enc
 
 	set iana [string tolower $iana]
@@ -244,7 +253,7 @@ proc feedparser::u::iana2tcl {iana} {
 # Side effects:
 # * i/o errors
 # * stderr warning if encoding wasn't found
-proc feedparser::u::getEncoding { filename } {
+proc ::feedparser::u::getEncoding { filename } {
 	set enc "utf-8"
 	
 	set fd [open $filename]
@@ -266,8 +275,8 @@ proc feedparser::u::getEncoding { filename } {
 }
 
 # Return a xml string
-proc feedparser::u::readXML { filename } {
-	set enc [feedparser::u::getEncoding $filename]
+proc ::feedparser::u::readXML { filename } {
+	set enc [getEncoding $filename]
 	set fd [open $filename]
 	fconfigure $fd -encoding $enc
 	set xml [read $fd]
@@ -276,19 +285,24 @@ proc feedparser::u::readXML { filename } {
 	return $xml
 }
 
-# Return a feedparser::NUMBER object
-proc feedparser::u::parse { filename } {
-	set xml [feedparser::u::readXML $filename]
-	return [feedparser::dom::parse $xml]
+# Return a ::feedparser::NUMBER object
+proc ::feedparser::u::parse { filename } {
+	set xml [readXML $filename]
+	return [::feedparser::dom::parse $xml]
 }
 
-proc feedparser::u::pluginsRun {node r} {
-	# TODO
+proc ::feedparser::u::pluginsRun {hook node Result} {
+	upvar $Result r
+	variable ::feedparser::pluginsList
+
+	foreach idx $::feedparser::pluginsList {
+		::feedparser::p::${idx}::${hook} $node r
+	}
 }
 
-namespace eval feedparser::dom {}
+namespace eval ::feedparser::dom {}
 
-proc feedparser::dom::parse { xml } {
+proc ::feedparser::dom::parse { xml } {
 	# pre-process xml to remove any processing instruction
 	regsub {<\?xml\s[^\?]+\?>} $xml {<?xml version="1.0"?>} xml
 
@@ -301,7 +315,7 @@ proc feedparser::dom::parse { xml } {
 		error "XML is not rdf, RDF, rdf:RDF, rss or atom"
 	}
 
-	set feed [feedparser::objNew]
+	set feed [::feedparser::objNew]
 	if {$node_name != "feed"} {
 		# looks like rss/rdf
 		set doc_node [$doc_node getElementsByTagName channel]
@@ -331,7 +345,7 @@ proc feedparser::dom::parse { xml } {
 # param node: A tDOM node which is supposed to contain the child
 # param child: The name of the child
 # return: Nothing
-proc feedparser::dom::set_child_text {node child} {
+proc ::feedparser::dom::set_child_text {node child} {
 	if { $node == "" || ![$node hasChildNodes] } return
 
 	set child_nodes ""
@@ -351,14 +365,14 @@ proc feedparser::dom::set_child_text {node child} {
 	}
 }
 
-proc feedparser::dom::parseHeadline { node } {
+proc ::feedparser::dom::parseHeadline { node } {
 	variable ::feedparser::validHeadline
 
 	array set r {}
 	foreach idx $validHeadline { set r($idx) ""	}
 
 	foreach idx [array names r] {
-		feedparser::dom::set_child_text $node $idx
+		set_child_text $node $idx
 		if {[info exists $idx]} { set r($idx) [set $idx] }
 	}
 	
@@ -390,8 +404,8 @@ proc feedparser::dom::parseHeadline { node } {
 		set author_node [$node selectNodes {*[local-name()='author']}]
 		if { [llength $author_node] == 1 } {
 			set author_node [lindex $author_node 0]
-			feedparser::dom::set_child_text $author_node name
-			feedparser::dom::set_child_text $author_node email
+			set_child_text $author_node name
+			set_child_text $author_node email
 			if {[regexp -- {\S+@\S+\.\S+} $email match]} {
 				set r(managingEditor) $match
 				if {[regexp -- {\w+} $name]} {
@@ -401,6 +415,8 @@ proc feedparser::dom::parseHeadline { node } {
 		}
 	}
 	
+	# run plugins
+	::feedparser::u::pluginsRun hookHeadline $node r
 
 	return [array get r]
 }
@@ -408,7 +424,7 @@ proc feedparser::dom::parseHeadline { node } {
 # Return:
 # big system-dependent integer value -- okay
 # -1 -- error
-proc feedparser::dom::parseDate { date } {
+proc ::feedparser::dom::parseDate { date } {
 	# In the past we were removing timezone, so any date was right only
 	# if it was in GMT. Now with the power of Tcl 8.5 clock command we
 	# can construct a proper parameter for -format option.
@@ -448,7 +464,7 @@ proc feedparser::dom::parseDate { date } {
 	return -1
 }
 
-proc feedparser::dom::parseEntries { node } {
+proc ::feedparser::dom::parseEntries { node } {
 	set r []
 	set entries [$node selectNodes {//*[local-name()='item' or local-name()='entry']}]
 
@@ -459,24 +475,24 @@ proc feedparser::dom::parseEntries { node } {
 	return $r
 }
 
-proc feedparser::dom::parseEntry { node } {
+proc ::feedparser::dom::parseEntry { node } {
 	variable ::feedparser::validEntry
 
 	array set r {}
 	foreach idx $validEntry { set $idx "" }
 	
-	feedparser::dom::set_child_text $node title
-	feedparser::dom::set_child_text $node link
-	feedparser::dom::set_child_text $node guid
-	feedparser::dom::set_child_text $node description
-	feedparser::dom::set_child_text $node comments
-	feedparser::dom::set_child_text $node author
-	feedparser::dom::set_child_text $node pubDate
+	set_child_text $node title
+	set_child_text $node link
+	set_child_text $node guid
+	set_child_text $node description
+	set_child_text $node comments
+	set_child_text $node author
+	set_child_text $node pubDate
 
 	# a small hack with date
 	if {$pubDate == ""} {
 		foreach idx {updated published} {
-			feedparser::dom::set_child_text $node $idx
+			::feedparser::dom::set_child_text $node $idx
 			if {[set pubDate [set $idx]] != ""} break
 		}
 	}
@@ -505,7 +521,7 @@ proc feedparser::dom::parseEntry { node } {
 	
 	# Try to handle Atom guid
 	if { $guid == "" && $maybe_atom_p } {
-		feedparser::dom::set_child_text $node id
+		::feedparser::dom::set_child_text $node id
 		if {$id != ""} {
 			# We don't really know if it's an URL
 			set guid $id
@@ -515,10 +531,10 @@ proc feedparser::dom::parseEntry { node } {
 	if { $maybe_atom_p } {
 		# for atom, description is summary, content is content_encoded;
 		# we will use the bigger one as the description
-		feedparser::dom::set_child_text $node summary
+		set_child_text $node summary
 		if {$summary != ""} { set description $summary }
 		
-		feedparser::dom::set_child_text $node content
+		set_child_text $node content
 		if {$content != "" && \
 				([string length $content] > [string length $description]) } {
 			set description $content
@@ -529,8 +545,8 @@ proc feedparser::dom::parseEntry { node } {
 
 		if { [llength $author_node] == 1 } {
 			set author_node [lindex $author_node 0]
-			feedparser::dom::set_child_text $author_node name
-			feedparser::dom::set_child_text $author_node email
+			set_child_text $author_node name
+			set_child_text $author_node email
 			if {[regexp -- {\w+} $name]} {
 				set author [string trim $name]
 			}
@@ -558,7 +574,7 @@ proc feedparser::dom::parseEntry { node } {
 		# a non-standard 'fulltext' element that contains a text that is
 		# bigger than a text in 'description' element. I don't know why
 		# the fuck is that & who is to blame.
-		feedparser::dom::set_child_text $node fulltext
+		set_child_text $node fulltext
 		if {[string length $fulltext] > [string length $description]} {
 			set description $fulltext
 		}
@@ -569,7 +585,7 @@ proc feedparser::dom::parseEntry { node } {
 	}
 
 	# run plugins
-	feedparser::u::pluginsRun $node r
+	::feedparser::u::pluginsRun hookEntry $node r
 
 	# remove unsafe html
 	set r(description) [htmlhug::tagsRemoveUnsafe $r(description)]
@@ -583,7 +599,7 @@ proc feedparser::dom::parseEntry { node } {
 # node -- a node to start search with
 # xmlns -- a list {namespace1 uri namespace2 uri ...}
 # nodeName -- a local node name, without a namespace prefix
-proc feedparser::dom::nodesGetAsText { node xmlns nodeName } {
+proc ::feedparser::dom::nodesGetAsText { node xmlns nodeName } {
 	if {$node == "" || $xmlns == "" || $nodeName == ""} { return [list] }
 	
 	set n [$node selectNodes -namespaces $xmlns \

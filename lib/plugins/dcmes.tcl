@@ -1,23 +1,23 @@
 # A small subset of DCMES 1.1 http://dublincore.org/documents/dces/
 
-namespace eval feedparser::p::dcSimple {
+namespace eval ::feedparser::p::dcmes {
 	variable xmlns {
 		dublinCore "http://purl.org/dc/elements/1.1/"
 	}
 }
 
-proc feedparser::p::dcSimple::hookMeta {} {
+proc ::feedparser::p::dcmes::hookStart {} {
 	variable ::feedparser::validEntry
 	variable ::feedparser::validHeadline
 	
 }
 
-proc feedparser::p::dcSimple::hookHeadline { node Result } {
+proc ::feedparser::p::dcmes::hookHeadline { node Result } {
 	upvar $Result r
 
 }
 
-proc feedparser::p::dcSimple::hookEntry { node Result } {
+proc ::feedparser::p::dcmes::hookEntry { node Result } {
 	upvar $Result r
 	variable xmlns
 
@@ -29,13 +29,13 @@ proc feedparser::p::dcSimple::hookEntry { node Result } {
 		if {$r($entryTag) == ""} {
 			set val [::feedparser::dom::nodesGetAsText $node $xmlns $dcTag]
 			if {[llength $val] > 0} {
-				set $r($entryTag) [lindex $val 0]
+				set r($entryTag) [lindex $val 0]
 			}
 		}
 	}
 
 	# description
-	set desc [::feedparser::dom::nodesGetAsText $node $xmlns "description"]
+	set desc [lindex [::feedparser::dom::nodesGetAsText $node $xmlns "description"] 0]
 	if {[string length $desc] > [string length $r(description)]} {
 		set r(description) $desc
 	}
@@ -43,7 +43,7 @@ proc feedparser::p::dcSimple::hookEntry { node Result } {
 	# date
 	if {$r(pubDate) == ""} {
 		set date [::feedparser::dom::nodesGetAsText $node $xmlns "date"]
-		if {[set pubDate [parseDate $date]] != -1} {
+		if {[set pubDate [::feedparser::dom::parseDate [lindex $date 0]]] != -1} {
 			set r(pubDate) $pubDate
 		}
 	}
