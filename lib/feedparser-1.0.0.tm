@@ -358,7 +358,7 @@ proc ::feedparser::dom::set_child_text {node child} {
 	}
 		
 	upvar $child var
-	if { [llength $child_nodes] == 1 } {
+	if { [llength $child_nodes] >= 1 } {
 		set child_node [lindex $child_nodes 0]
 		set var [string trim [$child_node text]]
 	} else {
@@ -485,9 +485,7 @@ proc ::feedparser::dom::parseEntry { node } {
 	set_child_text $node title
 	set_child_text $node link
 	set_child_text $node guid
-	set_child_text $node description
 	set_child_text $node comments
-	set_child_text $node author
 	set_child_text $node pubDate
 
 	# a small hack with date
@@ -514,54 +512,20 @@ proc ::feedparser::dom::parseEntry { node } {
 	
 	# Try to handle Atom guid
 	if { $guid == "" && $maybe_atom_p } {
-		::feedparser::dom::set_child_text $node id
+		set_child_text $node id
 		if {$id != ""} {
 			# We don't really know if it's an URL
 			set guid $id
 		}
 	}
 
-	# category
 	set category [parseCategory $node $maybe_atom_p]
 	set enclosure [parseEnclosure $node $maybe_atom_p]
-	
-	if { $maybe_atom_p } {
-		# for atom, description is summary, content is content_encoded;
-		# we will use the bigger one as the description
-		set_child_text $node summary
-		if {$summary != ""} { set description $summary }
-		
-		set_child_text $node content
-		if {$content != "" && \
-				([string length $content] > [string length $description]) } {
-			set description $content
-		}
-		
-		# person constructs
-		set author_node [$node selectNodes {*[local-name()='author']}]
+	set description [parseDescription $node $maybe_atom_p]
 
-		if { [llength $author_node] == 1 } {
-			set author_node [lindex $author_node 0]
-			set_child_text $author_node name
-			set_child_text $author_node email
-			if {[regexp -- {\w+} $name]} {
-				set author [string trim $name]
-			}
-			if {[regexp -- {\S+@\S+\.\S+} $email match]} {
-				set author_email $match
-			}
-		}
-	} else {
-		if {$author != ""} {
-			# check if author is a email address
-			if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $author match email name]} {
-				set author_email $email
-				set author [string trim $name { \t)(}]
-			} else {
-				set author [string trim $author]
-			}
-		}
-	}
+	set _a [parseAuthor $node $maybe_atom_p]
+	set author [lindex $_a 0]
+	set author_email [lindex $_a 1]
 
 	foreach idx $::feedparser::validEntry {
 		set r($idx) [set $idx]
@@ -606,20 +570,16 @@ proc ::feedparser::dom::parseCategory { node isAtom } {
 		foreach idx {term label} {
 			set cats [$node selectNodes \
 						  [format {*[local-name()='category']/@%s} $idx] ]
-			if {[llength $cats] > 0} {
-				foreach c $cats {
-					# c is "term {value}"
-					lappend r [string trim [lindex $c 1]]
-				}
-				break
+			foreach c $cats {
+				# c is "term {value}"
+				lappend r [string trim [lindex $c 1]]
 			}
+			break
 		}
 	} else {
 		set cats [$node selectNodes {*[local-name()='category']} ]
-		if {[llength $cats] > 0} {
-			foreach c $cats {
-				lappend r [string trim [$c text]]
-			}
+		foreach c $cats {
+			lappend r [string trim [$c text]]
 		}
 	}
 
@@ -643,6 +603,68 @@ proc ::feedparser::dom::parseEnclosure { node isAtom } {
 						   [$idx getAttribute length 0] \
 						   [$idx getAttribute url ""] ]
 		}
+	}
+
+	# FIXME: trim results	
+
+	return $r
+}
+
+# Return a list {author author_email]
+proc ::feedparser::dom::parseAuthor { node isAtom } {
+	set r [list {} {}]
+	if {$node == ""} { return $r }
+	
+	
+	if {$isAtom} {
+		set author_node [$node selectNodes {*[local-name()='author']}]
+
+		if { [llength $author_node] > 0 } {
+			set author_node [lindex $author_node 0]
+			set_child_text $author_node name
+			set_child_text $author_node email
+			if {[regexp -- {\w+} $name]} {
+				lset r 0 [string trim $name]
+			}
+			if {[regexp -- {\S+@\S+\.\S+} $email match]} {
+				lset r 1 $match
+			}
+		}
+	} else {
+		set_child_text $node author
+
+		# check if author has a email address
+		if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $author match email name]} {
+			lset r 1 $email
+			lset r 0 [string trim $name { \t)(}]
+		} else {
+			lset r 0 $author
+		}
+	}
+
+	return $r
+}
+
+proc ::feedparser::dom::parseDescription { node isAtom } {
+	if {$node == ""} { return "" }
+	
+	set r ""
+	
+	if {$isAtom} {
+		# FIXME: extract type=html, not just the 1st node
+		
+		# for atom, there is no descruption but summary & content;
+		# we will use the bigger one as the description
+		set_child_text $node summary
+		set r $summary
+		
+		set_child_text $node content
+		if {[string length $content] > [string length $summary]} {
+			set r $content
+		}
+	} else {
+		set_child_text $node description
+		set r $description
 	}
 
 	return $r
