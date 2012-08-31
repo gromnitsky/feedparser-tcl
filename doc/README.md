@@ -28,10 +28,9 @@ A basic usage of the API:
 
 To parse elements in a feed beyond subsets of rss/atom specs, the parser
 loads at startup some plugins (see `lib/plugins` directory). You can
-(relatively easily) add your own by using existing ones as an example.
+(relatively easily) add your own by using existing ones as examples.
 
 __TODO:__
 
 * plugin docs
-* enclosures 
 * more tests on shady feeds

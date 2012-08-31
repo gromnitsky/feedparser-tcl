@@ -80,7 +80,7 @@ test objNew "invalid entry param" -setup {
 } -body {
 	$o entrySet 0 foo "in bar"
 } -returnCodes error \
-	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title, category"
+	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title, category, enclosure"
 
 
 #
@@ -213,6 +213,8 @@ set sample0_xml {<?xml version="1.0" encoding="UTF-8"?>
 	<dc:creator>John Doe</dc:creator>
 	<category>foo</category>
 	<category>2 bars</category>
+	<enclosure url="http://example/com/1.mp3" length="1" type="audio/mpeg" />
+	<enclosure url="http://example/com/2.mp4" length="" type="video/mp4" />
 </item>
 </rss>}
 set sample0_doc [dom parse $sample0_xml]
@@ -236,7 +238,9 @@ test pluginsLoad "all" -body {
 test dcmes-plugin 0 -body {
 	set feed [::feedparser::dom::parse $sample0_xml]
 	$feed entryWhole 1
-} -result {description {a text} pubDate 1597032000 guid {} category {foo {2 bars}} title Flemsday link {} comments {} author_email {} author {John Doe}}
+} -result {enclosure {{audio/mpeg 1 http://example/com/1.mp3} {video/mp4 {} http://example/com/2.mp4}}\
+description {a text} pubDate 1597032000 guid {} category {foo {2 bars}}\
+title Flemsday link {} comments {} author_email {} author {John Doe}}
 
 set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -249,6 +253,16 @@ set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
 <category term="Electronic Commerce" label="Electronic Commerce"/>
 <category term="foo"  label="bar"/>
 <category label="hidden"/>
+<link rel="enclosure" 
+          type="audio/mpeg"
+          title="MP3"
+          href="http://example.org/1.mp3"
+          length="1" />
+<link rel="enclosure"
+          type="application/x-bittorrent"
+          title="BitTorrent"
+          href="http://example.org/2.torrent"
+          length="" />
 </entry>
 </feed>	
 }
@@ -259,7 +273,8 @@ set sample1_entries [$sample1_node selectNodes {//*[local-name()='item' or local
 test atomParsing 0 -body {
 	set feed [::feedparser::dom::parse $sample1_xml]
 	$feed entryWhole 0
-} -result {description {} pubDate 1346170425 guid urn:googlelabs:38334\
+} -result {enclosure {{audio/mpeg 1 http://example.org/1.mp3} {application/x-bittorrent {} http://example.org/2.torrent}}\
+description {} pubDate 1346170425 guid urn:googlelabs:38334\
 category {{Electronic Commerce} foo} title {Incremental Clicks}\
 link http://research.google.com/pubs/pub38334.html comments {}\
 author_email {} author {}}

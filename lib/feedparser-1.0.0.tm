@@ -19,7 +19,7 @@ namespace eval ::feedparser {
 		[list copyright description generator link managingEditor title]
 	variable validEntry \
 		[list author author_email comments description guid link pubDate title \
-			category]
+			category enclosure]
 
 	# plugins
 	variable pluginsList [list]
@@ -522,7 +522,8 @@ proc ::feedparser::dom::parseEntry { node } {
 	}
 
 	# category
-	set category [::feedparser::dom::parseCategory $node $maybe_atom_p]
+	set category [parseCategory $node $maybe_atom_p]
+	set enclosure [parseEnclosure $node $maybe_atom_p]
 	
 	if { $maybe_atom_p } {
 		# for atom, description is summary, content is content_encoded;
@@ -619,6 +620,28 @@ proc ::feedparser::dom::parseCategory { node isAtom } {
 			foreach c $cats {
 				lappend r [string trim [$c text]]
 			}
+		}
+	}
+
+	return $r
+}
+
+proc ::feedparser::dom::parseEnclosure { node isAtom } {
+	if {$node == ""} { return [list] }
+	
+	set r [list]
+	
+	if {$isAtom} {
+		foreach idx [$node selectNodes {*[local-name()='link' and @rel='enclosure']} ] {
+			lappend r [list [$idx getAttribute type ""] \
+						   [$idx getAttribute length 0] \
+						   [$idx getAttribute href ""] ]
+		}
+	} else {
+		foreach idx [$node selectNodes {*[local-name()='enclosure']}] {
+			lappend r [list [$idx getAttribute type ""] \
+						   [$idx getAttribute length 0] \
+						   [$idx getAttribute url ""] ]
 		}
 	}
 
