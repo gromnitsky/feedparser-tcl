@@ -200,10 +200,10 @@ set sample0_xml {<?xml version="1.0" encoding="UTF-8"?>
 <channel>
 	<title>tdom test</title>
 </channel>
-	<item>
+<item>
 	<dc:date>Mon, 27 Aug 2012 04:00:00 +0000</dc:date>
 	<dc:date>Mon, 28 Aug 2012 04:00:00 +0000</dc:date>
-	</item>
+</item>
 <item>
 	<pubDate>Mon, 10 Aug 2020 04:00:00 +0000</pubDate>
 	<dc:title>Flemsday</dc:title>
@@ -217,10 +217,15 @@ set sample0_xml {<?xml version="1.0" encoding="UTF-8"?>
 	<enclosure url="http://example/com/1.mp3" length="1" type="audio/mpeg" />
 	<enclosure url="http://example/com/2.mp4" length="" type="video/mp4" />
 </item>
+<item>
+	<link>http://feedburner/1</link>
+	<feedburner:origLink>http://example.org/1</feedburner:origLink>	
+</item>	
 </rss>}
 set sample0_doc [dom parse $sample0_xml]
 set sample0_node [$sample0_doc documentElement]
 set sample0_entries [$sample0_node selectNodes {//*[local-name()='item' or local-name()='entry']}]
+set sample0_feed [::feedparser::dom::parse $sample0_xml]
 
 test nodesGetAsText "dc:date" -body {
 	set r [list]
@@ -230,18 +235,22 @@ test nodesGetAsText "dc:date" -body {
 					   "date"]
 	}
 	return $r
-} -result {{{Mon, 27 Aug 2012 04:00:00 +0000} {Mon, 28 Aug 2012 04:00:00 +0000}} {}}
+} -result {{{Mon, 27 Aug 2012 04:00:00 +0000} {Mon, 28 Aug 2012 04:00:00 +0000}} {} {}}
 
 test pluginsLoad "all" -body {
 	return $::feedparser::pluginsList
-} -result {rdf dcmes nonstandard}
+} -result {rdf dcmes nonstandard feedburner}
 
 test dcmes-plugin 1 -body {
-	set feed [::feedparser::dom::parse $sample0_xml]
-	$feed entryWhole 1
+	$sample0_feed entryWhole 1
 } -result {enclosure {{audio/mpeg 1 http://example/com/1.mp3} {video/mp4 {} http://example/com/2.mp4}}\
 description {a text} pubDate 1597032000 guid {} category {foo {2 bars}}\
 title Flemsday link {} comments {} author_email {} author {John Doe}}
+
+test feedburner-plugin 2 -body {
+	$sample0_feed entryWhole 2
+} -result {enclosure {} description {} pubDate {} guid {} category {}\
+title {} link http://example.org/1 comments {} author_email {} author {}}
 
 set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
 <feed xmlns="http://www.w3.org/2005/Atom">
