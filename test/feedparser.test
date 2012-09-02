@@ -96,8 +96,9 @@ test parse "rss/2.0 headline" -body {
 
 test parse "atom headline" -body {
 	$pike headlines
-} -result {copyright {} description {} generator Blogger link http://commandcenter.blogspot.com/ managingEditor {noreply@blogger.com (rob)} title {command center}}
-
+} -result {copyright {} description {} generator Blogger\
+link http://commandcenter.blogspot.com/\
+managingEditor {rob <noreply@blogger.com>} title {command center}}
 
 test parse "rss/2.0 entries" -body {
 	$korr size
@@ -235,7 +236,7 @@ test pluginsLoad "all" -body {
 	return $::feedparser::pluginsList
 } -result {rdf dcmes nonstandard}
 
-test dcmes-plugin 0 -body {
+test dcmes-plugin 1 -body {
 	set feed [::feedparser::dom::parse $sample0_xml]
 	$feed entryWhole 1
 } -result {enclosure {{audio/mpeg 1 http://example/com/1.mp3} {video/mp4 {} http://example/com/2.mp4}}\
@@ -246,7 +247,7 @@ set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 <updated>2012-08-28T17:40:36Z</updated>
 <entry>
-<title><![CDATA[Incremental Clicks]]></title>
+<title type='html'>Incremental &lt;b>Clicks&lt;/b></title>
 <updated>2012-08-28T16:13:45Z</updated>
 <id>urn:googlelabs:38334</id>
 <link rel="alternate" href="http://research.google.com/pubs/pub38334.html" type="text/html"/>
@@ -254,30 +255,39 @@ set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
 <category term="foo"  label="bar"/>
 <category label="hidden"/>
 <link rel="enclosure" 
-          type="audio/mpeg"
-          title="MP3"
-          href="http://example.org/1.mp3"
+          type="audio/mpeg   "
+          title="MP3 "
+          href="   http://example.org/1.mp3"
           length="1" />
 <link rel="enclosure"
-          type="application/x-bittorrent"
-          title="BitTorrent"
-          href="http://example.org/2.torrent"
+          type="   application/x-bittorrent"
+          title="BitTorrent  "
+          href="  http://example.org/2.torrent"
           length="" />
+</entry>
+<entry>
+<link rel="self" href="ftp://example.com/self" />
+<link href="ftp://example.com" />
 </entry>
 </feed>	
 }
 set sample1_doc [dom parse $sample1_xml]
 set sample1_node [$sample1_doc documentElement]
 set sample1_entries [$sample1_node selectNodes {//*[local-name()='item' or local-name()='entry']}]
+set sample1_feed [::feedparser::dom::parse $sample1_xml]
 
 test atomParsing 0 -body {
-	set feed [::feedparser::dom::parse $sample1_xml]
-	$feed entryWhole 0
+	$sample1_feed entryWhole 0
 } -result {enclosure {{audio/mpeg 1 http://example.org/1.mp3} {application/x-bittorrent {} http://example.org/2.torrent}}\
 description {} pubDate 1346170425 guid urn:googlelabs:38334\
-category {{Electronic Commerce} foo} title {Incremental Clicks}\
+category {{Electronic Commerce} foo} title {Incremental <b>Clicks</b>}\
 link http://research.google.com/pubs/pub38334.html comments {}\
 author_email {} author {}}
+
+test atomParsing 1 -body {
+	$sample1_feed entryWhole 1
+} -result {enclosure {} description {} pubDate {} guid {} category {} title {}\
+link ftp://example.com comments {} author_email {} author {}}
 
 
 # statistics

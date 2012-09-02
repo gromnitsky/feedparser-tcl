@@ -377,41 +377,27 @@ proc ::feedparser::dom::parseHeadline { node } {
 		if {[info exists $idx]} { set r($idx) [set $idx] }
 	}
 	
-	if {$r(managingEditor) != ""} {
-		if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $r(managingEditor) match email name]} {
-			set r(managingEditor) $email
-			if {[regexp -- {\w+} $name]} {
-				append r(managingEditor) " [string trim $name]"
-			}
-		} else {
-			# invalid, clear it
-			set r(managingEditor) ""
-		}
-	}
-	
-	# do weird stuff for atom
+	# atom
 	if {[$node nodeName] == "feed"} {
 		# link
-		if {$r(link) == ""} {
-			# link is in a href
-			set link_node [$node selectNodes {*[local-name()='link' and @rel = 'alternate' and @type = 'text/html']/@href}]
-			if { [llength $link_node] >= 1 } {
-				set link_node [lindex $link_node 0]
-				set r(link) [lindex $link_node 1]
-			}
-		}
+		set r(link) [parseAtomLink $node]
 		
 		# author
-		set author_node [$node selectNodes {*[local-name()='author']}]
-		if { [llength $author_node] == 1 } {
-			set author_node [lindex $author_node 0]
-			set_child_text $author_node name
-			set_child_text $author_node email
-			if {[regexp -- {\S+@\S+\.\S+} $email match]} {
-				set r(managingEditor) $match
+		lassign [parseAtomAuthor $node] author author_email
+		set r(managingEditor) $author
+		if {$author_email != ""} {
+			append r(managingEditor) [expr {$author != "" ? " <$author_email>" : $author_email} ]
+		}
+	} else {
+		if {$r(managingEditor) != ""} {
+			if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $r(managingEditor) match email name]} {
+				set r(managingEditor) $email
 				if {[regexp -- {\w+} $name]} {
-					append r(managingEditor) " ([string trim $name])"
+					append r(managingEditor) " [string trim $name]"
 				}
+			} else {
+				# invalid, clear it
+				set r(managingEditor) ""
 			}
 		}
 	}
@@ -485,8 +471,8 @@ proc ::feedparser::dom::parseEntry { node } {
 	set_child_text $node title
 	set_child_text $node link
 	set_child_text $node guid
-	set_child_text $node comments
-	set_child_text $node pubDate
+	set_child_text $node comments; # rss
+	set_child_text $node pubDate;  # rss
 
 	# a small hack with date
 	if {$pubDate == ""} {
@@ -501,21 +487,19 @@ proc ::feedparser::dom::parseEntry { node } {
 
 	# try to handle atom link
 	if {$link == ""} {
-		set link_attr [$node selectNodes {*[local-name()='link' and @rel = 'alternate']/@href}]
-		if { [llength $link_attr] >= 1 } {
-			set link [lindex [lindex $link_attr 0] 1]
+		if {[set link [parseAtomLink $node]] != ""} {
 			set maybe_atom_p 1
 		}
 	}
 
 	if {$link == "" && $guid != ""} { set link $guid }
 	
-	# Try to handle Atom guid
-	if { $guid == "" && $maybe_atom_p } {
+	# try to handle atom guid
+	if {$guid == ""} {
 		set_child_text $node id
 		if {$id != ""} {
-			# We don't really know if it's an URL
 			set guid $id
+			set maybe_atom_p 1
 		}
 	}
 
@@ -523,9 +507,7 @@ proc ::feedparser::dom::parseEntry { node } {
 	set enclosure [parseEnclosure $node $maybe_atom_p]
 	set description [parseDescription $node $maybe_atom_p]
 
-	set _a [parseAuthor $node $maybe_atom_p]
-	set author [lindex $_a 0]
-	set author_email [lindex $_a 1]
+	lassign [parseAuthor $node $maybe_atom_p] author author_email
 
 	foreach idx $::feedparser::validEntry {
 		set r($idx) [set $idx]
@@ -593,19 +575,17 @@ proc ::feedparser::dom::parseEnclosure { node isAtom } {
 	
 	if {$isAtom} {
 		foreach idx [$node selectNodes {*[local-name()='link' and @rel='enclosure']} ] {
-			lappend r [list [$idx getAttribute type ""] \
-						   [$idx getAttribute length 0] \
-						   [$idx getAttribute href ""] ]
+			lappend r [list [string trim [$idx getAttribute type ""]] \
+						   [string trim [$idx getAttribute length 0]] \
+						   [string trim [$idx getAttribute href ""]] ]
 		}
 	} else {
 		foreach idx [$node selectNodes {*[local-name()='enclosure']}] {
-			lappend r [list [$idx getAttribute type ""] \
-						   [$idx getAttribute length 0] \
-						   [$idx getAttribute url ""] ]
+			lappend r [list [string trim [$idx getAttribute type ""]] \
+						   [string trim [$idx getAttribute length 0]] \
+						   [string trim [$idx getAttribute url ""]] ]
 		}
 	}
-
-	# FIXME: trim results	
 
 	return $r
 }
@@ -617,19 +597,7 @@ proc ::feedparser::dom::parseAuthor { node isAtom } {
 	
 	
 	if {$isAtom} {
-		set author_node [$node selectNodes {*[local-name()='author']}]
-
-		if { [llength $author_node] > 0 } {
-			set author_node [lindex $author_node 0]
-			set_child_text $author_node name
-			set_child_text $author_node email
-			if {[regexp -- {\w+} $name]} {
-				lset r 0 [string trim $name]
-			}
-			if {[regexp -- {\S+@\S+\.\S+} $email match]} {
-				lset r 1 $match
-			}
-		}
+		set r [parseAtomAuthor $node]
 	} else {
 		set_child_text $node author
 
@@ -645,16 +613,39 @@ proc ::feedparser::dom::parseAuthor { node isAtom } {
 	return $r
 }
 
+proc ::feedparser::dom::parseAtomAuthor { node } {
+	set r [list {} {}]
+	if {$node == ""} { return $r }
+
+	# FIXME: return a list of authors, not just the 1ts one
+	set author_node [$node selectNodes {*[local-name()='author']}]
+
+	if { [llength $author_node] > 0 } {
+		set author_node [lindex $author_node 0]
+		set_child_text $author_node name
+		set_child_text $author_node email
+		if {[regexp -- {\w+} $name]} {
+			lset r 0 [string trim $name]
+		}
+		if {[regexp -- {\S+@\S+\.\S+} $email match]} {
+			lset r 1 $match
+		}
+	}
+
+	return $r
+}
+
 proc ::feedparser::dom::parseDescription { node isAtom } {
 	if {$node == ""} { return "" }
 	
 	set r ""
 	
 	if {$isAtom} {
-		# FIXME: extract type=html, not just the 1st node
-		
-		# for atom, there is no descruption but summary & content;
-		# we will use the bigger one as the description
+		# atom:entry elements MUST NOT contain more than one
+		# atom:content or atom:summary element.
+		#
+		# there is no descruption but summary & content; we will use the
+		# bigger one as the description.
 		set_child_text $node summary
 		set r $summary
 		
@@ -667,5 +658,24 @@ proc ::feedparser::dom::parseDescription { node isAtom } {
 		set r $description
 	}
 
+	return $r
+}
+
+proc ::feedparser::dom::parseAtomLink { node } {
+	if {$node == ""} { return "" }
+
+	set r ""
+	# If the "rel" attribute is not present, the link element
+	# MUST be interpreted as if the link relation type is
+	# "alternate".
+	foreach idx [$node selectNodes {*[local-name()='link']} ] {
+		set isRel [string trim [$idx getAttribute rel ""]]
+		
+		if {$isRel == "" || $isRel eq "alternate"} {
+			set r [string trim [$idx getAttribute href ""]]
+			break
+		}
+	}
+	
 	return $r
 }
