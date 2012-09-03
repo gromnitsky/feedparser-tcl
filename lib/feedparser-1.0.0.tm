@@ -388,6 +388,10 @@ proc ::feedparser::dom::parseHeadline { node } {
 		if {$author_email != ""} {
 			append r(managingEditor) [expr {$author != "" ? " <$author_email>" : $author_email} ]
 		}
+
+		# copyright
+		set_child_text $node rights
+		set r(copyright) $rights
 	} else {
 		if {$r(managingEditor) != ""} {
 			if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $r(managingEditor) match email name]} {

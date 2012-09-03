@@ -254,6 +254,7 @@ title {} link http://example.org/1 comments {} author_email {} author {}}
 
 set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
 <feed xmlns="http://www.w3.org/2005/Atom">
+<rights>FooBar, Inc</rights>
 <updated>2012-08-28T17:40:36Z</updated>
 <entry>
 <title type='html'>Incremental &lt;b>Clicks&lt;/b></title>
@@ -298,6 +299,10 @@ test atomParsing 1 -body {
 } -result {enclosure {} description {} pubDate {} guid {} category {} title {}\
 link ftp://example.com comments {} author_email {} author {}}
 
+
+test atomRights 0 -body {
+	$sample1_feed headline copyright
+} -result {FooBar, Inc}
 
 # statistics
 cleanupTests
