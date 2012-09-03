@@ -411,7 +411,7 @@ proc ::feedparser::dom::parseHeadline { node } {
 
 # Return {author email} list
 proc ::feedparser::u::parseRssPerson { rawValue } {
-	set r [list]
+	set r ""
 
 	# possible values:
 	#
@@ -434,8 +434,9 @@ proc ::feedparser::u::parseRssPerson { rawValue } {
 	return $r
 }
 
+# Return {author email} list.
 proc ::feedparser::dom::parseRssPerson {node nodeName} {
-	set r [list]
+	set r ""
 	if {$node == "" || $nodeName == ""} { return $r }
 
 	# as I understand only 1 node of person constructs is allowed for
@@ -626,7 +627,7 @@ proc ::feedparser::dom::parseEnclosure { node isAtom } {
 	return $r
 }
 
-# Return a list {author author_email]
+# Return a list of lists {name email}
 proc ::feedparser::dom::parseAuthor { node isAtom } {
 	set r [list]
 	if {$node == ""} { return $r }
@@ -641,10 +642,12 @@ proc ::feedparser::dom::parseAuthor { node isAtom } {
 	return $r
 }
 
+# Return a list of lists {name email}
 proc ::feedparser::dom::parseAtomAuthor { node } {
 	set r [list]
 	if {$node == ""} { return $r }
 
+	# FIXME: add atom:contributor
 	foreach idx [$node selectNodes {*[local-name()='author']}] {
 		set_child_text $idx name
 		set_child_text $idx email
