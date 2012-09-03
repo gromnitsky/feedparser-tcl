@@ -71,7 +71,7 @@ test objNew "invalid headline param" -setup {
 } -body {
 	$o headlineSet foo "in bar"
 } -returnCodes error \
-	-result "invalid feed parameter 'foo': must be copyright, description, generator, link, managingEditor, title"
+	-result "invalid feed parameter 'foo': must be copyright, description, generator, link, managingEditor, webMaster, title"
 
 test objNew "invalid entry param" -setup {
 	set o [feedparser::objNew]
@@ -80,7 +80,7 @@ test objNew "invalid entry param" -setup {
 } -body {
 	$o entrySet 0 foo "in bar"
 } -returnCodes error \
-	-result "invalid entry parameter 'foo': must be author, author_email, comments, description, guid, link, pubDate, title, category, enclosure"
+	-result "invalid entry parameter 'foo': must be author, comments, description, guid, link, pubDate, title, category, enclosure"
 
 
 #
@@ -92,13 +92,18 @@ set pike [feedparser::u::parse data/feeds/comp.rob_pike]
 
 test parse "rss/2.0 headline" -body {
 	$korr headlines
-} -result {copyright {Copyright 2012 korrespondent.net} description {Новости на korrespondent.net} generator {} link http://korrespondent.net managingEditor korrespondent@korrespondent.net title {Новости на korrespondent.net}}
+} -result {copyright {Copyright 2012 korrespondent.net}\
+description {Новости на korrespondent.net} generator {}\
+link http://korrespondent.net\
+managingEditor {{{} korrespondent@korrespondent.net}} webMaster {}\
+title {Новости на korrespondent.net}}
 
 test parse "atom headline" -body {
 	$pike headlines
 } -result {copyright {} description {} generator Blogger\
 link http://commandcenter.blogspot.com/\
-managingEditor {rob <noreply@blogger.com>} title {command center}}
+managingEditor {{rob noreply@blogger.com}} webMaster {}\
+title {command center}}
 
 test parse "rss/2.0 entries" -body {
 	$korr size
@@ -115,8 +120,7 @@ test parse "rss/2.0 entry 5" -body {
 	control::assert { [regexp -- "Русская служба Би-би-си" $e(description)] }
 	control::assert { [regexp -- "korrespondent.net/world/1387250" $e(link)] }
 	control::assert { [regexp -- "#comment_header_layer" $e(comments)] }
-	control::assert { $e(author_email) == "" }
-	control::assert { $e(author) == "32057" }
+	control::assert { $e(author) == "{32057 {}}" }
 	
 	return $e(pubDate)
 } -result {1345836360}
@@ -128,8 +132,7 @@ test parse "atom entry 1" -body {
 	control::assert { [regexp -- "Just last week I was reviewing" $e(description)] }
 	control::assert { $e(link) eq "http://commandcenter.blogspot.com/2012/04/byte-order-fallacy.html" }
 	control::assert { $e(comments) == "" }
-	control::assert { $e(author_email) eq "noreply@blogger.com" }
-	control::assert { $e(author) eq "rob" }
+	control::assert { $e(author) eq "{rob noreply@blogger.com}" }
 	
 	return $e(pubDate)
 } -result {1333601367}
@@ -211,7 +214,7 @@ set sample0_xml {<?xml version="1.0" encoding="UTF-8"?>
 	<dc:creator>John Doe</dc:creator>
 	<dc:description>a text</dc:description>
 	<dc:description>text 2</dc:description>
-	<dc:creator>John Doe</dc:creator>
+	<dc:creator>a@e.com (Bob)</dc:creator>
 	<category>foo</category>
 	<category>2 bars</category>
 	<enclosure url="http://example/com/1.mp3" length="1" type="audio/mpeg" />
@@ -245,12 +248,12 @@ test dcmes-plugin 1 -body {
 	$sample0_feed entryWhole 1
 } -result {enclosure {{audio/mpeg 1 http://example/com/1.mp3} {video/mp4 {} http://example/com/2.mp4}}\
 description {a text} pubDate 1597032000 guid {} category {foo {2 bars}}\
-title Flemsday link {} comments {} author_email {} author {John Doe}}
+title Flemsday link {} comments {} author {{{John Doe} {}} {Bob a@e.com}}}
 
 test feedburner-plugin 2 -body {
 	$sample0_feed entryWhole 2
 } -result {enclosure {} description {} pubDate {} guid {} category {}\
-title {} link http://example.org/1 comments {} author_email {} author {}}
+title {} link http://example.org/1 comments {} author {}}
 
 set sample1_xml {<?xml version="1.0" encoding="UTF-8" ?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -292,17 +295,42 @@ test atomParsing 0 -body {
 description {} pubDate 1346170425 guid urn:googlelabs:38334\
 category {{Electronic Commerce} foo} title {Incremental <b>Clicks</b>}\
 link http://research.google.com/pubs/pub38334.html comments {}\
-author_email {} author {}}
+author {}}
 
 test atomParsing 1 -body {
 	$sample1_feed entryWhole 1
 } -result {enclosure {} description {} pubDate {} guid {} category {} title {}\
-link ftp://example.com comments {} author_email {} author {}}
+link ftp://example.com comments {} author {}}
 
 
 test atomRights 0 -body {
 	$sample1_feed headline copyright
 } -result {FooBar, Inc}
+
+
+#
+# Person constructs
+#
+
+test rssPerson "empty" -body {
+	::feedparser::u::parseRssPerson ""
+} -result {}
+
+test rssPerson "name only" -body {
+	::feedparser::u::parseRssPerson "  Bob "
+} -result {Bob {}}
+
+test rssPerson "email only" -body {
+	::feedparser::u::parseRssPerson " john@example.com   "
+} -result {{} john@example.com}
+
+test rssPerson "full 1" -body {
+	::feedparser::u::parseRssPerson " john@example.com (John Doe)  "
+} -result {{John Doe} john@example.com}
+
+test rssPerson "full 2" -body {
+	::feedparser::u::parseRssPerson " John Doe <john@example.com> "
+} -result {{John Doe} john@example.com}
 
 # statistics
 cleanupTests

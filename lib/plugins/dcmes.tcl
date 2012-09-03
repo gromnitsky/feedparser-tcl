@@ -22,7 +22,6 @@ proc ::feedparser::p::dcmes::hookEntry { node Result } {
 	variable xmlns
 
 	array set dc_entry {
-		creator author
 		title title
 	}
 	foreach {dcTag entryTag} [array get dc_entry] {
@@ -32,6 +31,11 @@ proc ::feedparser::p::dcmes::hookEntry { node Result } {
 				set r($entryTag) [lindex $val 0]
 			}
 		}
+	}
+
+	# author
+	foreach idx [::feedparser::dom::nodesGetAsText $node $xmlns "creator"] {
+		lappend r(author) [::feedparser::u::parseRssPerson $idx]
 	}
 
 	# description

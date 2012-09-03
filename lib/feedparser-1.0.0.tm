@@ -15,11 +15,17 @@ package require htmlhug
 namespace eval ::feedparser {
 	variable objCount 0
 
+	# list of lists: managingEditor
+	# list: webMaster
 	variable validHeadline \
-		[list copyright description generator link managingEditor title]
+		[list copyright description generator link managingEditor webMaster \
+			 title]
+
+	# list of lists: author, enclosure
+	# list: category
 	variable validEntry \
-		[list author author_email comments description guid link pubDate title \
-			category enclosure]
+		[list author comments description guid link pubDate title \
+			 category enclosure]
 
 	# plugins
 	variable pluginsList [list]
@@ -383,33 +389,59 @@ proc ::feedparser::dom::parseHeadline { node } {
 		set r(link) [parseAtomLink $node]
 		
 		# author
-		lassign [parseAtomAuthor $node] author author_email
-		set r(managingEditor) $author
-		if {$author_email != ""} {
-			append r(managingEditor) [expr {$author != "" ? " <$author_email>" : $author_email} ]
-		}
+		set r(webMaster) ""; # not in atom spec
+		set r(managingEditor) [parseAtomAuthor $node]
 
 		# copyright
 		set_child_text $node rights
 		set r(copyright) $rights
 	} else {
-		if {$r(managingEditor) != ""} {
-			if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $r(managingEditor) match email name]} {
-				set r(managingEditor) $email
-				if {[regexp -- {\w+} $name]} {
-					append r(managingEditor) " [string trim $name]"
-				}
-			} else {
-				# invalid, clear it
-				set r(managingEditor) ""
-			}
-		}
+		# many
+		set m [::feedparser::u::parseRssPerson $r(managingEditor)]
+		set r(managingEditor) [expr {$m != "" ? [list $m] : [list]} ]
+		# one
+		set r(webMaster) [::feedparser::u::parseRssPerson $r(webMaster)]
 	}
 	
 	# run plugins
 	::feedparser::u::pluginsRun hookHeadline $node r
 
 	return [array get r]
+}
+
+# Return {author email} list
+proc ::feedparser::u::parseRssPerson { rawValue } {
+	set r [list]
+
+	# possible values:
+	#
+	# john@example.com (John Doe)
+	# John Doe <john@example.com>
+
+	set mailRegexp \
+		{[a-zA-Z0-9#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9\[:_.-]*[a-zA-Z0-9\]]}
+	
+	if {[regexp -- $mailRegexp $rawValue email]} {
+		regsub -- $mailRegexp $rawValue "" name
+		set name [string trim $name " \t()<>"]
+		set r [list $name $email]
+	} else {
+		if {$rawValue != "" } {
+			set r [list [string trim $rawValue] {}]
+		}
+	}
+
+	return $r
+}
+
+proc ::feedparser::dom::parseRssPerson {node nodeName} {
+	set r [list]
+	if {$node == "" || $nodeName == ""} { return $r }
+
+	# as I understand only 1 node of person constructs is allowed for
+	# rss feeds.
+	set_child_text $node $nodeName
+	::feedparser::u::parseRssPerson [set $nodeName]
 }
 
 # Return:
@@ -511,7 +543,7 @@ proc ::feedparser::dom::parseEntry { node } {
 	set enclosure [parseEnclosure $node $maybe_atom_p]
 	set description [parseDescription $node $maybe_atom_p]
 
-	lassign [parseAuthor $node $maybe_atom_p] author author_email
+	set author [parseAuthor $node $maybe_atom_p]
 
 	foreach idx $::feedparser::validEntry {
 		set r($idx) [set $idx]
@@ -596,44 +628,27 @@ proc ::feedparser::dom::parseEnclosure { node isAtom } {
 
 # Return a list {author author_email]
 proc ::feedparser::dom::parseAuthor { node isAtom } {
-	set r [list {} {}]
+	set r [list]
 	if {$node == ""} { return $r }
-	
 	
 	if {$isAtom} {
 		set r [parseAtomAuthor $node]
 	} else {
-		set_child_text $node author
-
-		# check if author has a email address
-		if {[regexp -- {(\S+@\S+\.\S+)(\s+\(.+\))?} $author match email name]} {
-			lset r 1 $email
-			lset r 0 [string trim $name { \t)(}]
-		} else {
-			lset r 0 $author
-		}
+		set a [parseRssPerson $node "author"]
+		set r [expr {$a != "" ? [list $a] : [list]} ]
 	}
 
 	return $r
 }
 
 proc ::feedparser::dom::parseAtomAuthor { node } {
-	set r [list {} {}]
+	set r [list]
 	if {$node == ""} { return $r }
 
-	# FIXME: return a list of authors, not just the 1ts one
-	set author_node [$node selectNodes {*[local-name()='author']}]
-
-	if { [llength $author_node] > 0 } {
-		set author_node [lindex $author_node 0]
-		set_child_text $author_node name
-		set_child_text $author_node email
-		if {[regexp -- {\w+} $name]} {
-			lset r 0 [string trim $name]
-		}
-		if {[regexp -- {\S+@\S+\.\S+} $email match]} {
-			lset r 1 $match
-		}
+	foreach idx [$node selectNodes {*[local-name()='author']}] {
+		set_child_text $idx name
+		set_child_text $idx email
+		lappend r [list $name $email]
 	}
 
 	return $r
